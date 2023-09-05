@@ -1,7 +1,7 @@
 package edu.curtin.saed.assignment1.misc;
 
 import edu.curtin.saed.assignment1.GameEngine;
-import edu.curtin.saed.assignment1.entities.Robot;
+import edu.curtin.saed.assignment1.entities.robot.Robot;
 
 public class RobotSpawner implements Runnable
 {

@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.entities;
+package edu.curtin.saed.assignment1.entities.fortress_wall;
 
 import edu.curtin.saed.assignment1.GameEngine;
 import edu.curtin.saed.assignment1.misc.Coordinates;

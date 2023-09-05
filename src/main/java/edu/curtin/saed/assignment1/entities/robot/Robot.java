@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.entities;
+package edu.curtin.saed.assignment1.entities.robot;
 
 import java.util.Random;
 
