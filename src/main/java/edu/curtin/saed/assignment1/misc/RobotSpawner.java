@@ -28,7 +28,7 @@ public class RobotSpawner implements Runnable
                 
                 this.gameEngine.putNewRobot(robot);
 
-                Thread.sleep(ROBOT_SPAWN_DELAY_MILLISECONDS);
+                Thread.sleep(ROBOT_SPAWN_DELAY_MILLISECONDS); // TODO Timer/tasks? 
             }
         }
         catch(InterruptedException iE)
