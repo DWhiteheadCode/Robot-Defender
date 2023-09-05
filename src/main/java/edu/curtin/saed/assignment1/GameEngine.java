@@ -120,27 +120,29 @@ public class GameEngine
                         };
                         
 
-                        // Add locations that are unoccupied by other robots to the list
-                        List<Location> freeCorners = new ArrayList<>();
+                        // Add corner Locations that are unoccupied by other robots to a list
+                        List<Location> unoccupiedCorners = new ArrayList<>();
                         for(Location l : corners)
                         {                            
                             if(l.getRobot() == null)
                             {
-                                freeCorners.add(l);
+                                unoccupiedCorners.add(l);
                             }
                         }
 
                         // Place the robot in the grid
-                        if(freeCorners.size() == 0)
+                        if(unoccupiedCorners.size() == 0)
                         {
                             //TODO
                         }  
                         else
                         {
-                            int spawnLocationIdx = rand.nextInt(0, freeCorners.size() - 1);
+                            // Randomly choose one of the unoccupied corners as the robot's spawn point
+                            int spawnLocationIdx = rand.nextInt(0, unoccupiedCorners.size() - 1);
 
                             Location spawnLocation = corners[spawnLocationIdx];
 
+                            // Tell the corner that it is occupied, and tell the robot its coordinates
                             spawnLocation.setRobot(nextRobot);
                             nextRobot.setCoordinates( spawnLocation.getCoordinates() );
                         }
@@ -152,8 +154,7 @@ public class GameEngine
                         robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
                         robotThread.start();
 
-                        // Notify JFXArena to redraw UI
-                        // TODO
+                        // TODO Notify JFXArena to redraw UI
                     }                    
                 }  
             }
