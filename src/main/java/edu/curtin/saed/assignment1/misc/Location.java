@@ -5,12 +5,14 @@ import edu.curtin.saed.assignment1.entities.Wall;
 
 public class Location 
 {
+    private final Coordinates coordinates;
     private Robot robot;
     private Wall wall;
     private boolean citadel;
 
-    public Location()
+    public Location(Coordinates coordinates)
     {
+        this.coordinates = coordinates;
         this.robot = null;
         this.wall = null;
         this.citadel = false;
