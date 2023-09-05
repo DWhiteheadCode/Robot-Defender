@@ -24,7 +24,7 @@ public class Robot implements Runnable
         Random rand = new Random();
         this.moveDelayMilliseconds = rand.nextLong(
             MIN_MOVE_DELAY_MILLISECONDS,
-            MAX_MOVE_DELAY_MILLISECONDS + 1
+            (MAX_MOVE_DELAY_MILLISECONDS + 1)
         );
         
         this.gameEngine = gameEngine;
