@@ -1,6 +1,7 @@
 package edu.curtin.saed.assignment1.entities;
 
 import edu.curtin.saed.assignment1.GameEngine;
+import edu.curtin.saed.assignment1.misc.Coordinates;
 
 public class Robot implements Runnable
 {

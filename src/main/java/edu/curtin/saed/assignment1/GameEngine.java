@@ -5,6 +5,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import edu.curtin.saed.assignment1.entities.*;
+import edu.curtin.saed.assignment1.misc.Location;
 
 public class GameEngine 
 {

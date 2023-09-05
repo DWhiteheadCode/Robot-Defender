@@ -1,4 +1,7 @@
-package edu.curtin.saed.assignment1.entities;
+package edu.curtin.saed.assignment1.misc;
+
+import edu.curtin.saed.assignment1.entities.Robot;
+import edu.curtin.saed.assignment1.entities.Wall;
 
 public class Location 
 {

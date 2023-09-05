@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.entities;
+package edu.curtin.saed.assignment1.misc;
 
 public class Coordinates 
 {

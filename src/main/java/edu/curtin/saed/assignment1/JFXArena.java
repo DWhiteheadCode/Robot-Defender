@@ -10,6 +10,8 @@ import javafx.scene.text.TextAlignment;
 import java.io.*;
 import java.util.*;
 
+import edu.curtin.saed.assignment1.misc.*;
+
 /**
  * A JavaFX GUI element that displays a grid on which you can draw images, text and lines.
  */
@@ -24,8 +26,8 @@ public class JFXArena extends Pane
     
     // The following values are arbitrary, and you may need to modify them according to the 
     // requirements of your application.
-    private int gridWidth = 9;
-    private int gridHeight = 9;
+    private int gridCols = 9;
+    private int gridRows = 9;
     private double robotX = 1.0;
     private double robotY = 3.0;
 
@@ -39,7 +41,7 @@ public class JFXArena extends Pane
      */
     public JFXArena()
     {
-        this.gameEngine = new GameEngine();
+        this.gameEngine = new GameEngine(gridRows, gridCols);
         this.gameEngine.start();
 
         // Here's how (in JavaFX) you get an Image object from an image file that's part of the 
@@ -100,7 +102,7 @@ public class JFXArena extends Pane
                 int gridX = (int)(event.getX() / gridSquareSize);
                 int gridY = (int)(event.getY() / gridSquareSize);
                 
-                if(gridX < gridWidth && gridY < gridHeight)
+                if(gridX < gridCols && gridY < gridRows)
                 {
                     for(ArenaListener listener : listeners)
                     {   
@@ -130,11 +132,11 @@ public class JFXArena extends Pane
         // First, calculate how big each grid cell should be, in pixels. (We do need to do this
         // every time we repaint the arena, because the size can change.)
         gridSquareSize = Math.min(
-            getWidth() / (double) gridWidth,
-            getHeight() / (double) gridHeight);
+            getWidth() / (double) gridCols,
+            getHeight() / (double) gridRows);
             
-        double arenaPixelWidth = gridWidth * gridSquareSize;
-        double arenaPixelHeight = gridHeight * gridSquareSize;
+        double arenaPixelWidth = gridCols * gridSquareSize;
+        double arenaPixelHeight = gridRows * gridSquareSize;
             
             
         // Draw the arena grid lines. This may help for debugging purposes, and just generally
@@ -142,13 +144,13 @@ public class JFXArena extends Pane
         gfx.setStroke(Color.DARKGREY);
         gfx.strokeRect(0.0, 0.0, arenaPixelWidth - 1.0, arenaPixelHeight - 1.0); // Outer edge
 
-        for(int gridX = 1; gridX < gridWidth; gridX++) // Internal vertical grid lines
+        for(int gridX = 1; gridX < gridCols; gridX++) // Internal vertical grid lines
         {
             double x = (double) gridX * gridSquareSize;
             gfx.strokeLine(x, 0.0, x, arenaPixelHeight);
         }
         
-        for(int gridY = 1; gridY < gridHeight; gridY++) // Internal horizontal grid lines
+        for(int gridY = 1; gridY < gridRows; gridY++) // Internal horizontal grid lines
         {
             double y = (double) gridY * gridSquareSize;
             gfx.strokeLine(0.0, y, arenaPixelWidth, y);
