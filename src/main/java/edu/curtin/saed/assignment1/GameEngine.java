@@ -1,5 +1,6 @@
 package edu.curtin.saed.assignment1;
 
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -7,7 +8,7 @@ import edu.curtin.saed.assignment1.entities.*;
 
 public class GameEngine 
 {
-    // THREADS
+    // GAME_ENGINE THREADS
     private Thread robotSpawnConsumerThread;
     private Thread wallSpawnConsumerThread;
     private Thread robotMoveValidatorThread;
@@ -15,7 +16,22 @@ public class GameEngine
     // BLOCKING QUEUES
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
     private BlockingQueue<Wall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
-    
+    //private BlockingQueue<...> robotMoveBlockingQueue = new ArrayBlockingQueue<>(...);
+
+    // GAME STATE INFO
+    private Location[][] gridSquares;
+    private List<Thread> robotThreads;
+
+
+
+    //CONSTRUCTOR
+    public GameEngine(int numRows, int numCols)
+    {
+        gridSquares = new Location[numRows][numCols];
+    }
+
+
+
 
     public void start()
     {
@@ -25,8 +41,8 @@ public class GameEngine
         }
 
         robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawner");
-        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "robot-spawner");
-        robotMoveValidatorThread = new Thread(robotMoveValidatorRunnable(), "robot-spawner");
+        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawner");
+        robotMoveValidatorThread = new Thread(robotMoveValidatorRunnable(), "robot-mover");
     }
     
     public void stop()
@@ -44,7 +60,7 @@ public class GameEngine
     private Runnable robotSpawnConsumerRunnable()
     {
         return () -> {
-
+            
         };
     }
 
