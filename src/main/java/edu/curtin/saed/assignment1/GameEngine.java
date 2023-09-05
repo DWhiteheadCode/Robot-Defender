@@ -24,13 +24,13 @@ public class GameEngine
 
     // GAME STATE INFO
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread
-    private List<Thread> robotThreads = new ArrayList<>(); // Accessed by robotSpawnConsumerThread  TODO - used by Thread for robot destruction on wall impact callbacks?
+    private List<Thread> robotThreads = new ArrayList<>(); // Accessed by robotSpawnConsumerThread  TODO - used by robotMoveValidatorThread for robot destruction on wall impact callbacks?
 
     private final int numRows;
     private final int numCols;
 
     // MUTEXES
-    private Object gridSquaresMutex = new Object(); // Used to lock "gridSquares", and ""
+    private Object gridSquaresMutex = new Object(); // Used to lock "gridSquares"
 
     // MISC
     Random rand = new Random();
@@ -67,7 +67,7 @@ public class GameEngine
             }
         }
 
-        //Set the citadel in the middle square
+        //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, facour col right of middle.
         int middleRow = (numRows / 2) + 1;
         int middleCol = (numCols / 2) + 1;
 
