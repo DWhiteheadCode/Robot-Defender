@@ -1,10 +1,13 @@
 package edu.curtin.saed.assignment1;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import edu.curtin.saed.assignment1.entities.*;
+import edu.curtin.saed.assignment1.misc.Coordinates;
 import edu.curtin.saed.assignment1.misc.Location;
 
 public class GameEngine 
@@ -12,7 +15,7 @@ public class GameEngine
     // GAME_ENGINE THREADS
     private Thread robotSpawnConsumerThread;
     private Thread wallSpawnConsumerThread;
-    private Thread robotMoveValidatorThread;
+    private Thread robotMoveValidatorThread;   
 
     // BLOCKING QUEUES
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
@@ -20,18 +23,55 @@ public class GameEngine
     //private BlockingQueue<...> robotMoveBlockingQueue = new ArrayBlockingQueue<>(...);
 
     // GAME STATE INFO
-    private Location[][] gridSquares;
-    private List<Thread> robotThreads;
+    private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread
+    private List<Thread> robotThreads; // Accessed by robotSpawnConsumerThread  TODO - used by Thread for robot destruction on wall impact callbacks?
+    private final int numRows;
+    private final int numCols;
 
+    // MUTEXES
+    private Object gridSquaresMutex = new Object();
 
+    // MISC
+    Random rand = new Random();
 
     //CONSTRUCTOR
     public GameEngine(int numRows, int numCols)
     {
-        gridSquares = new Location[numRows][numCols];
+        if(numRows < 3)
+        {
+            throw new IllegalStateException("GameEngine only support grids with at least 3 rows.");
+        }
+
+        if(numCols > 3)
+        {
+            throw new IllegalStateException("GameEngine only support grids with at least 3 cols.");
+        }
+
+        this.numRows = numRows;
+        this.numCols = numCols;
+
+        initGridSquares(numRows, numCols);
     }
 
+    private void initGridSquares(int numRows, int numCols)
+    {
+        //Initialise array
+        this.gridSquares = new Location[numRows][numCols];
 
+        for(int i = 0; i < numRows; i++)
+        {
+            for(int j = 0; j < numCols; j++)
+            {
+                this.gridSquares[i][j] = new Location( new Coordinates(j, i) );
+            }
+        }
+
+        //Set the citadel in the middle square
+        int middleRow = (numRows / 2) + 1;
+        int middleCol = (numCols / 2) + 1;
+
+        this.gridSquares[middleRow][middleCol].setCitadel(true);
+    }
 
 
     public void start()
@@ -60,8 +100,66 @@ public class GameEngine
 
     private Runnable robotSpawnConsumerRunnable()
     {
-        return () -> {
-            
+        return () -> 
+        {
+            try
+            {
+                while(true)
+                {
+                    Robot nextRobot = robotSpawnBlockingQueue.take();
+                    
+                    synchronized(gridSquaresMutex)
+                    {
+                        // Get all four corners
+                        Location[] corners = { 
+                            gridSquares[0][0],  // Top left
+                            gridSquares[numRows - 1][0], // Bottom left
+                            gridSquares[numRows - 1][numCols - 1], //Bottom right
+                            gridSquares[0][numCols - 1]  // Top right
+                        };
+                        
+
+                        // Add locations that are unoccupied by other robots to the list
+                        List<Location> freeCorners = new ArrayList<>();
+                        for(Location l : corners)
+                        {                            
+                            if(l.getRobot() == null)
+                            {
+                                freeCorners.add(l);
+                            }
+                        }
+
+                        // Place the robot in the grid
+                        if(freeCorners.size() == 0)
+                        {
+                            //TODO
+                        }  
+                        else
+                        {
+                            int spawnLocationIdx = rand.nextInt(0, freeCorners.size() - 1);
+
+                            Location spawnLocation = corners[spawnLocationIdx];
+
+                            spawnLocation.setRobot(nextRobot);
+                            nextRobot.setCoordinates( spawnLocation.getCoordinates() );
+                        }
+
+
+                        // Add the robot's thread to the list of threads, and start it
+                        String threadName = "robot-" + nextRobot.getId();
+                        Thread robotThread = new Thread(nextRobot, threadName); //TODO Thread pool
+                        robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
+                        robotThread.start();
+                    }                    
+                }  
+            }
+            catch(InterruptedException iE)
+            {
+                //TODO
+            }
+
+
+             
         };
     }
 
