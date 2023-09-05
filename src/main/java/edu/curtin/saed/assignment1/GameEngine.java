@@ -24,7 +24,7 @@ public class GameEngine
 
     // GAME STATE INFO
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread
-    private List<Thread> robotThreads; // Accessed by robotSpawnConsumerThread  TODO - used by Thread for robot destruction on wall impact callbacks?
+    private List<Thread> robotThreads = new ArrayList<>(); // Accessed by robotSpawnConsumerThread  TODO - used by Thread for robot destruction on wall impact callbacks?
 
     private final int numRows;
     private final int numCols;

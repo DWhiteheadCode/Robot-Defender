@@ -15,23 +15,18 @@ public class Robot implements Runnable
     private GameEngine gameEngine;
     private Coordinates coordinates;
     
-    public Robot(int id)
+    public Robot(int id, GameEngine gameEngine)
     {
         this.id = id;
 
         Random rand = new Random();
         this.moveDelayMilliseconds = rand.nextLong(
             MIN_MOVE_DELAY_MILLISECONDS,
-            MAX_MOVE_DELAY_MILLISECONDS
+            MAX_MOVE_DELAY_MILLISECONDS + 1
         );
         
-        this.gameEngine = null;
+        this.gameEngine = gameEngine;
         this.coordinates = null;
-    }
-
-    public void setGameEngine(GameEngine engine)
-    {
-        this.gameEngine = engine;
     }
 
     public void setCoordinates(Coordinates coordinates)

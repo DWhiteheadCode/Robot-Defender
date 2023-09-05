@@ -24,7 +24,7 @@ public class RobotSpawner implements Runnable
             while(true)
             {
                 this.robotCount++;
-                Robot robot = new Robot(robotCount);
+                Robot robot = new Robot(robotCount, gameEngine);
                 
                 this.gameEngine.putNewRobot(robot);
 
