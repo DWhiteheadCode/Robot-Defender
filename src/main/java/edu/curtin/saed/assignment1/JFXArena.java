@@ -15,6 +15,9 @@ import java.util.*;
  */
 public class JFXArena extends Pane
 {
+    private GameEngine gameEngine;
+
+
     // Represents an image to draw, retrieved as a project resource.
     private static final String IMAGE_FILE = "1554047213.png";
     private Image robot1;
@@ -36,6 +39,9 @@ public class JFXArena extends Pane
      */
     public JFXArena()
     {
+        this.gameEngine = new GameEngine();
+        this.gameEngine.start();
+
         // Here's how (in JavaFX) you get an Image object from an image file that's part of the 
         // project's "resources". If you need multiple different images, you can modify this code 
         // accordingly.
@@ -63,6 +69,8 @@ public class JFXArena extends Pane
         canvas.widthProperty().bind(widthProperty());
         canvas.heightProperty().bind(heightProperty());
         getChildren().add(canvas);
+
+        
     }
     
     
