@@ -70,6 +70,11 @@ public class Location
         this.citadel = citadel;
     }
 
+    //Return a copy of this location's coordinates
+    public Coordinates getCoordinates()
+    {
+        return new Coordinates(this.coordinates);
+    }
     
 
 

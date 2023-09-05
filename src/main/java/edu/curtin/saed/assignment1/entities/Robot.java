@@ -74,6 +74,15 @@ public class Robot implements Runnable
 
     }
 
+    public int getId()
+    {
+        return this.id;
+    }
+
+    public Coordinates getCoordinates()
+    {
+        return new Coordinates(this.coordinates);
+    }
 
 
 

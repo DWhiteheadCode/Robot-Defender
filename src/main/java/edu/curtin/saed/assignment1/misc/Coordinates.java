@@ -11,6 +11,12 @@ public class Coordinates
         this.y = y;
     }
 
+    public Coordinates(Coordinates copy)
+    {
+        this.x = copy.x();
+        this.y = copy.y();
+    }
+
     public void setX(int x)
     {
         this.x = x;
