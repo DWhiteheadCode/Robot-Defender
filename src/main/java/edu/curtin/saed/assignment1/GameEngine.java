@@ -79,6 +79,9 @@ public class GameEngine
         };
     }
 
-
+    public void putNewRobot(Robot robot) throws InterruptedException
+    {
+        this.robotSpawnBlockingQueue.put(robot);
+    }
 
 }
