@@ -1,19 +1,30 @@
 package edu.curtin.saed.assignment1.entities;
 
+import java.util.Random;
+
 import edu.curtin.saed.assignment1.GameEngine;
 import edu.curtin.saed.assignment1.misc.Coordinates;
 
 public class Robot implements Runnable
 {
+    private final int MIN_MOVE_DELAY_MILLISECONDS = 500;
+    private final int MAX_MOVE_DELAY_MILLISECONDS = 2000;
+
     private final int id;
     private final long moveDelayMilliseconds;
     private GameEngine gameEngine;
     private Coordinates coordinates;
     
-    public Robot(int id, long moveDelayMilliseconds)
+    public Robot(int id)
     {
         this.id = id;
-        this.moveDelayMilliseconds = moveDelayMilliseconds;
+
+        Random rand = new Random();
+        this.moveDelayMilliseconds = rand.nextLong(
+            MIN_MOVE_DELAY_MILLISECONDS,
+            MAX_MOVE_DELAY_MILLISECONDS
+        );
+        
         this.gameEngine = null;
         this.coordinates = null;
     }
