@@ -10,7 +10,6 @@ import javafx.scene.text.TextAlignment;
 import java.io.*;
 import java.util.*;
 
-import edu.curtin.saed.assignment1.misc.*;
 
 /**
  * A JavaFX GUI element that displays a grid on which you can draw images, text and lines.
