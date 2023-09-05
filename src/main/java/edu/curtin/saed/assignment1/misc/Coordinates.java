@@ -2,8 +2,8 @@ package edu.curtin.saed.assignment1.misc;
 
 public class Coordinates 
 {
-    private int x;
-    private int y;
+    private double x;
+    private double y;
 
     public Coordinates(int x, int y)
     {
@@ -27,12 +27,12 @@ public class Coordinates
         this.y = y;
     }
     
-    public int x()
+    public double x()
     {
         return x;
     }
 
-    public int y()
+    public double y()
     {
         return y;
     }
