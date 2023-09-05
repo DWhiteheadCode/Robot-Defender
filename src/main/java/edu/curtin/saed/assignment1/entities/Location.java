@@ -4,13 +4,13 @@ public class Location
 {
     private Robot robot;
     private Wall wall;
-    private final boolean citadel;
+    private boolean citadel;
 
-    public Location(boolean citadel)
+    public Location()
     {
         this.robot = null;
         this.wall = null;
-        this.citadel = citadel;
+        this.citadel = false;
     }
 
     // ACCESSORS ----------------------------
@@ -58,6 +58,11 @@ public class Location
     public void removeWall()
     {
         this.wall = null;
+    }
+
+    public void setCitadel(boolean citadel)
+    {
+        this.citadel = citadel;
     }
 
     
