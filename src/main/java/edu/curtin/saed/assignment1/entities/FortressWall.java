@@ -5,6 +5,9 @@ import edu.curtin.saed.assignment1.misc.Coordinates;
 
 public class FortressWall 
 {
+    public static final String UNDAMAGED_IMAGE_FILE = "181478.png";
+    public static final String DAMAGED_IMAGE_FILE = "181479.png";
+
     private Coordinates coordinates;
     private boolean isDamaged;
 

@@ -10,6 +10,8 @@ import javafx.scene.text.TextAlignment;
 import java.io.*;
 import java.util.*;
 
+import edu.curtin.saed.assignment1.entities.*;
+
 
 /**
  * A JavaFX GUI element that displays a grid on which you can draw images, text and lines.
@@ -19,16 +21,15 @@ public class JFXArena extends Pane
     private GameEngine gameEngine;
 
 
-    // Represents an image to draw, retrieved as a project resource.
-    private static final String IMAGE_FILE = "1554047213.png";
-    private Image robot1;
+    // Represents an image to draw
+    private Image robotImage;
+    private Image undamagedFortressWallImage;
+    private Image damagedFortressWallImage;
     
     // The following values are arbitrary, and you may need to modify them according to the 
     // requirements of your application.
     private int gridCols = 9;
     private int gridRows = 9;
-    private double robotX = 1.0;
-    private double robotY = 3.0;
 
     private double gridSquareSize; // Auto-calculated
     private Canvas canvas; // Used to provide a 'drawing surface'.
@@ -40,51 +41,40 @@ public class JFXArena extends Pane
      */
     public JFXArena()
     {
+        // Load Images
+        this.robotImage = loadImage(Robot.IMAGE_FILE);
+        this.undamagedFortressWallImage = loadImage(FortressWall.UNDAMAGED_IMAGE_FILE);
+        this.damagedFortressWallImage = loadImage(FortressWall.DAMAGED_IMAGE_FILE);
+
+        // Create and start GameEngine
         this.gameEngine = new GameEngine(gridRows, gridCols);
         this.gameEngine.start();
-
-        // Here's how (in JavaFX) you get an Image object from an image file that's part of the 
-        // project's "resources". If you need multiple different images, you can modify this code 
-        // accordingly.
         
-        // (NOTE: _DO NOT_ use ordinary file-reading operations here, and in particular do not try
-        // to specify the file's path/location. That will ruin things if you try to create a 
-        // distributable version of your code with './gradlew build'. The approach below is how a 
-        // project is supposed to read its own internal resources, and should work both for 
-        // './gradlew run' and './gradlew build'.)
-                
-        try(InputStream is = getClass().getClassLoader().getResourceAsStream(IMAGE_FILE))
-        {
-            if(is == null)
-            {
-                throw new AssertionError("Cannot find image file " + IMAGE_FILE);
-            }
-            robot1 = new Image(is);
-        }
-        catch(IOException e)
-        {
-            throw new AssertionError("Cannot load image file " + IMAGE_FILE, e);
-        }
-        
+        // Draw UI        
         canvas = new Canvas();
         canvas.widthProperty().bind(widthProperty());
         canvas.heightProperty().bind(heightProperty());
         getChildren().add(canvas);
-
-        
     }
     
-    
-    /**
-     * Moves a robot image to a new grid position. This is highly rudimentary, as you will need
-     * many different robots in practice. This method currently just serves as a demonstration.
-     */
-    public void setRobotPosition(double x, double y)
+    // Return an Image from a resource filename
+    public Image loadImage(String path)
     {
-        robotX = x;
-        robotY = y;
-        requestLayout();
+        try(InputStream is = getClass().getClassLoader().getResourceAsStream( path ))
+        {
+            if(is == null)
+            {
+                throw new AssertionError("Cannot find image file " + path);
+            }
+            return new Image(is);
+        }
+        catch(IOException e)
+        {
+            throw new AssertionError("Cannot load image file " + path, e);
+        }
     }
+
+    
     
     /**
      * Adds a callback for when the user clicks on a grid square within the arena. The callback 
@@ -157,7 +147,7 @@ public class JFXArena extends Pane
 
         // Invoke helper methods to draw things at the current location.
         // ** You will need to adapt this to the requirements of your application. **
-        drawImage(gfx, robot1, robotX, robotY);
+        drawImage(gfx, robotImage, robotX, robotY);
         drawLabel(gfx, "Robot Name", robotX, robotY);
     }
     
@@ -179,8 +169,8 @@ public class JFXArena extends Pane
         // We also need to know how "big" to make the image. The image file has a natural width 
         // and height, but that's not necessarily the size we want to draw it on the screen. We 
         // do, however, want to preserve its aspect ratio.
-        double fullSizePixelWidth = robot1.getWidth();
-        double fullSizePixelHeight = robot1.getHeight();
+        double fullSizePixelWidth = robotImage.getWidth();
+        double fullSizePixelHeight = robotImage.getHeight();
         
         double displayedPixelWidth, displayedPixelHeight;
         if(fullSizePixelWidth > fullSizePixelHeight)
