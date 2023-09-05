@@ -1,13 +1,13 @@
 package edu.curtin.saed.assignment1.misc;
 
 import edu.curtin.saed.assignment1.entities.Robot;
-import edu.curtin.saed.assignment1.entities.Wall;
+import edu.curtin.saed.assignment1.entities.FortressWall;
 
 public class Location 
 {
     private final Coordinates coordinates;
     private Robot robot;
-    private Wall wall;
+    private FortressWall wall;
     private boolean citadel;
 
     public Location(Coordinates coordinates)
@@ -24,7 +24,7 @@ public class Location
         return this.robot;
     }
 
-    public Wall getWall()
+    public FortressWall getWall()
     {
         return this.wall;
     }
@@ -50,7 +50,7 @@ public class Location
         this.robot = null;
     }
 
-    public void setWall(Wall newWall)
+    public void setWall(FortressWall newWall)
     {
         if(this.wall != null)
         {
