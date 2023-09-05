@@ -10,7 +10,8 @@ import javafx.scene.text.TextAlignment;
 import java.io.*;
 import java.util.*;
 
-import edu.curtin.saed.assignment1.entities.*;
+import edu.curtin.saed.assignment1.entities.robot.*;
+import edu.curtin.saed.assignment1.entities.fortress_wall.*;
 
 
 /**
@@ -147,8 +148,33 @@ public class JFXArena extends Pane
 
         // Invoke helper methods to draw things at the current location.
         // ** You will need to adapt this to the requirements of your application. **
-        drawImage(gfx, robotImage, robotX, robotY);
-        drawLabel(gfx, "Robot Name", robotX, robotY);
+        List<ReadOnlyRobot> robots = gameEngine.getRobots();
+        List<ReadOnlyFortressWall> walls = gameEngine.getWalls();
+
+        //Draw all walls
+        for(ReadOnlyFortressWall w : walls)
+        {
+            if(w.isDamaged())
+            {
+                drawImage( gfx, damagedFortressWallImage, w.getCoordinates().x(), w.getCoordinates().y() );
+            }
+            else
+            {
+                drawImage( gfx, undamagedFortressWallImage, w.getCoordinates().x(), w.getCoordinates().y() );
+            }
+        }
+
+        //Draw all robots
+        for(ReadOnlyRobot r : robots)
+        {
+            //Draw the robot icon
+            drawImage( gfx, robotImage, r.getCoordinates().x(), r.getCoordinates().y() );
+
+            //Draw the label
+            String label = String.valueOf(r.getId());
+            drawLabel( gfx, label, r.getCoordinates().x(), r.getCoordinates().y() );
+        }
+
     }
     
     
@@ -169,8 +195,8 @@ public class JFXArena extends Pane
         // We also need to know how "big" to make the image. The image file has a natural width 
         // and height, but that's not necessarily the size we want to draw it on the screen. We 
         // do, however, want to preserve its aspect ratio.
-        double fullSizePixelWidth = robotImage.getWidth();
-        double fullSizePixelHeight = robotImage.getHeight();
+        double fullSizePixelWidth = image.getWidth(); //TODO This was "robotImage", however I think it should be image. May need to fix later
+        double fullSizePixelHeight = image.getHeight(); //TODO same as above
         
         double displayedPixelWidth, displayedPixelHeight;
         if(fullSizePixelWidth > fullSizePixelHeight)
