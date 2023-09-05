@@ -23,14 +23,9 @@ public class GameEngine
     //private BlockingQueue<...> robotMoveBlockingQueue = new ArrayBlockingQueue<>(...);
 
     // GAME STATE INFO
-    // IMPORTANT NOTE:
-        // 'gridSquares' and 'corners' both access the same locations, with 'corners' being a subset of 'gridSquares'
-        // Both are used by the following threads: robotSpawnConsumerThread, wallSpawnConsumerThread, robotMoveValidatorThread 
-    private Location[][] gridSquares; // Includes all Locations in the grid
-    private Location[] corners; // Only includes the 4 locations on the corners of the grid
-
+    private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread
     private List<Thread> robotThreads; // Accessed by robotSpawnConsumerThread  TODO - used by Thread for robot destruction on wall impact callbacks?
-    
+
     private final int numRows;
     private final int numCols;
 
@@ -157,7 +152,7 @@ public class GameEngine
                         robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
                         robotThread.start();
 
-                        // Notify UI to redraw UI
+                        // Notify JFXArena to redraw UI
                         // TODO
                     }                    
                 }  
