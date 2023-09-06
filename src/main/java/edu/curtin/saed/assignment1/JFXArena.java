@@ -48,7 +48,7 @@ public class JFXArena extends Pane
         this.damagedFortressWallImage = loadImage(FortressWall.DAMAGED_IMAGE_FILE);
 
         // Create and start GameEngine
-        this.gameEngine = new GameEngine(gridRows, gridCols);
+        this.gameEngine = new GameEngine(this, gridRows, gridCols);
         this.gameEngine.start();
         
         // Draw UI        
