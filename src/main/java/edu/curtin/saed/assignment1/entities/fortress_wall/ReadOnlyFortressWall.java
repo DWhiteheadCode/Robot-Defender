@@ -1,10 +1,10 @@
 package edu.curtin.saed.assignment1.entities.fortress_wall;
 
-import edu.curtin.saed.assignment1.misc.Coordinates;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class ReadOnlyFortressWall 
 {
-    private Coordinates coordinates;
+    private Vector2d coordinates;
     private boolean isDamaged;
 
     public ReadOnlyFortressWall(FortressWall fortressWall)
@@ -13,9 +13,9 @@ public class ReadOnlyFortressWall
         this.isDamaged = fortressWall.isDamaged();
     }
 
-    public Coordinates getCoordinates()
+    public Vector2d getCoordinates()
     {
-        return new Coordinates(this.coordinates);
+        return new Vector2d(this.coordinates);
     }
 
     public boolean isDamaged()

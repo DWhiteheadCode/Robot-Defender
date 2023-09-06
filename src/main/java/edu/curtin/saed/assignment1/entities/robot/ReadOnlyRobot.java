@@ -1,11 +1,11 @@
 package edu.curtin.saed.assignment1.entities.robot;
 
-import edu.curtin.saed.assignment1.misc.Coordinates;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class ReadOnlyRobot
 {
     private final int id;
-    private Coordinates coordinates;
+    private Vector2d coordinates;
     
     public ReadOnlyRobot(Robot robot)
     {
@@ -18,9 +18,9 @@ public class ReadOnlyRobot
         return this.id;
     }
 
-    public Coordinates getCoordinates()
+    public Vector2d getCoordinates()
     {
-        return new Coordinates(this.coordinates);
+        return new Vector2d(this.coordinates);
     }
 
 

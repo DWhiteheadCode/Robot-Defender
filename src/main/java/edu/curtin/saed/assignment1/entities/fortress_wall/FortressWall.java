@@ -1,14 +1,14 @@
 package edu.curtin.saed.assignment1.entities.fortress_wall;
 
-import edu.curtin.saed.assignment1.GameEngine;
-import edu.curtin.saed.assignment1.misc.Coordinates;
+import edu.curtin.saed.assignment1.game_engine.GameEngine;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class FortressWall 
 {
     public static final String UNDAMAGED_IMAGE_FILE = "181478.png";
     public static final String DAMAGED_IMAGE_FILE = "181479.png";
 
-    private Coordinates coordinates;
+    private Vector2d coordinates;
     private boolean isDamaged;
 
     private GameEngine gameEngine;
@@ -20,14 +20,14 @@ public class FortressWall
         this.coordinates = null;
     }
 
-    public void setCoordinates(Coordinates coordiantes)
+    public void setCoordinates(Vector2d coordiantes)
     {
         this.coordinates = coordiantes;
     }
 
-    public Coordinates getCoordinates()
+    public Vector2d getCoordinates()
     {
-        return new Coordinates(this.coordinates);
+        return new Vector2d(this.coordinates);
     }
 
     public boolean isDamaged()

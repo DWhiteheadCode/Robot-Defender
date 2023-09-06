@@ -5,12 +5,12 @@ import edu.curtin.saed.assignment1.entities.robot.Robot;
 
 public class Location 
 {
-    private final Coordinates coordinates;
+    private final Vector2d coordinates;
     private Robot robot;
     private FortressWall wall;
     private boolean citadel;
 
-    public Location(Coordinates coordinates)
+    public Location(Vector2d coordinates)
     {
         this.coordinates = coordinates;
         this.robot = null;
@@ -71,9 +71,9 @@ public class Location
     }
 
     //Return a copy of this location's coordinates
-    public Coordinates getCoordinates()
+    public Vector2d getCoordinates()
     {
-        return new Coordinates(this.coordinates);
+        return new Vector2d(this.coordinates);
     }
     
 

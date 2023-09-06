@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1;
+package edu.curtin.saed.assignment1.game_engine;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,12 +8,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import edu.curtin.saed.assignment1.entities.robot.*;
+import edu.curtin.saed.assignment1.App;
+import edu.curtin.saed.assignment1.JFXArena;
 import edu.curtin.saed.assignment1.entities.fortress_wall.*;
 import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
 import edu.curtin.saed.assignment1.entities.robot.Robot;
-import edu.curtin.saed.assignment1.misc.Coordinates;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 import edu.curtin.saed.assignment1.misc.Location;
-import edu.curtin.saed.assignment1.misc.RobotSpawner;
 import javafx.application.Platform;
 
 public class GameEngine 
@@ -33,11 +34,13 @@ public class GameEngine
     private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
     //private BlockingQueue<...> robotMoveBlockingQueue = new ArrayBlockingQueue<>(...);
 
-    // GAME STATE INFO
+    // GAME STATE INFO - All except "citadel" is a single resource
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread.
     private List<Thread> robotThreads = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread  TODO - used by robotMoveValidatorThread for robot destruction on wall impact callbacks?
     private List<Robot> robots = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     private List<FortressWall> walls = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
+    
+    private Vector2d citadel; // Only used by constructor thread, and robotMoveValidatorThread, so does not need to be locked.
 
     private final int numRows;
     private final int numCols;
@@ -61,7 +64,7 @@ public class GameEngine
             throw new IllegalStateException("GameEngine only supports grids with at least 3 cols.");
         }
 
-        //TODO Fix need for this...
+        //TODO Fix the need for this...
         this.app = app;
 
         this.numRows = numRows;
@@ -80,6 +83,10 @@ public class GameEngine
         this.arena = arena;
     }
 
+    /*
+     * Initialises the array and elements that make up the grid.
+     * Sets the citadel in the middle of the grid. 
+     */
     private void initGridSquares(int numRows, int numCols)
     {
         //Initialise array
@@ -89,15 +96,17 @@ public class GameEngine
         {
             for(int j = 0; j < numCols; j++)
             {
-                this.gridSquares[i][j] = new Location( new Coordinates(j, i) );
+                this.gridSquares[i][j] = new Location( new Vector2d(j, i) );
             }
         }
 
-        //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, facour col right of middle.
+        //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, favour col right of middle.
         int middleRow = (numRows / 2) + 1;
         int middleCol = (numCols / 2) + 1;
 
         this.gridSquares[middleRow][middleCol].setCitadel(true);
+
+        this.citadel = new Vector2d(middleCol, middleRow);
     }
 
 
@@ -197,7 +206,7 @@ public class GameEngine
                         robots.add(nextRobot);
 
                         //Save the coordinates to print to the screen 
-                        Coordinates spawnCoords = nextRobot.getCoordinates();
+                        Vector2d spawnCoords = nextRobot.getCoordinates();
 
                         // Add the robot's thread to the list of threads, and start it
                         String threadName = "robot-" + nextRobot.getId();
@@ -271,5 +280,9 @@ public class GameEngine
         return list;
     }
 
+    public Vector2d getCitadel()
+    {
+        return new Vector2d(citadel);
+    }
 
 }

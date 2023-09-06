@@ -1,9 +1,12 @@
 package edu.curtin.saed.assignment1.entities.robot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
-import edu.curtin.saed.assignment1.GameEngine;
-import edu.curtin.saed.assignment1.misc.Coordinates;
+import edu.curtin.saed.assignment1.entities.robot.moves.*;
+import edu.curtin.saed.assignment1.game_engine.GameEngine;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class Robot implements Runnable
 {
@@ -15,7 +18,7 @@ public class Robot implements Runnable
     private final int id;
     private final long moveDelayMilliseconds;
     private GameEngine gameEngine;
-    private Coordinates coordinates;
+    private Vector2d coordinates;
     
     public Robot(int id, GameEngine gameEngine)
     {
@@ -31,7 +34,7 @@ public class Robot implements Runnable
         this.coordinates = null;
     }
 
-    public void setCoordinates(Coordinates coordinates)
+    public void setCoordinates(Vector2d coordinates)
     {
         this.coordinates = coordinates;
     }
@@ -55,10 +58,14 @@ public class Robot implements Runnable
             do
             {
                 //Comapre coords with citadel coords
-
-                //Sort possible moves based on ordered-randomness
-
+                Vector2d citadelPos = gameEngine.getCitadel();
+                                
+                //Sort possible moves based on weighted-randomness
+                List<Move> allMoves = allMoves(citadelPos);
+                List<Move> moveOrder = generateMoveOrder(allMoves);
+                
                 //Attempt to make moves until one succeeds
+                
                 
                 Thread.sleep(moveDelayMilliseconds);
             }
@@ -76,11 +83,64 @@ public class Robot implements Runnable
         return this.id;
     }
 
-    public Coordinates getCoordinates()
+    public Vector2d getCoordinates()
     {
-        return new Coordinates(this.coordinates);
+        return new Vector2d(this.coordinates);
     }
 
+    
+
+    // Calculates the displacement from the citadel after making each possible move
+    private List<Move> allMoves(Vector2d citadelPos)
+    {
+        List<Move> moves = new ArrayList<>();
+
+        moves.add(new UpMove( getCoordinates(), citadelPos ));
+        moves.add(new DownMove(getCoordinates(), citadelPos));
+        moves.add(new LeftMove(getCoordinates(), citadelPos));
+        moves.add(new RightMove(getCoordinates(), citadelPos));
+
+        return moves;
+    }
+
+    // Sort the possible moves based on weighted randomness, with weights corresponding to distance from citadel after making the mvoe
+    private List<Move> generateMoveOrder(List<Move> unorderedMoves)
+    {
+        double totalDistance = 0;
+
+        for(Move m : unorderedMoves)
+        {
+            totalDistance += m.getDistanceToCitadel();
+        }
+
+        List<Move> orderedMoves = new ArrayList<>();
+
+        Random rand = new Random();
+
+        while(!unorderedMoves.isEmpty())
+        {
+            double randNum = rand.nextDouble() * (totalDistance - 1);
+            double count = 0;
+
+            for(Move m : unorderedMoves)
+            {
+                if( randNum < m.getDistanceToCitadel() + count )
+                {
+                    orderedMoves.add(0, m);
+                    break;
+                }
+
+                count += m.getDistanceToCitadel();
+                
+            }
+
+            totalDistance -= orderedMoves.get(0).getDistanceToCitadel();
+            unorderedMoves.remove( orderedMoves.get(0) );
+            
+        }
+
+        return orderedMoves;
+    }
 
 
 

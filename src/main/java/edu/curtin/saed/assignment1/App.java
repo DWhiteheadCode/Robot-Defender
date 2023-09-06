@@ -1,5 +1,6 @@
 package edu.curtin.saed.assignment1;
 
+import edu.curtin.saed.assignment1.game_engine.GameEngine;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
