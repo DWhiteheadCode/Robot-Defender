@@ -204,9 +204,8 @@ public class GameEngine
                         Thread robotThread = new Thread(nextRobot, threadName); //TODO Thread pool
                         robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
                         robotThread.start();
-
                         
-                        // TODO Notify JFXArena to redraw UI (??)
+                        // TODO Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
                             app.log("Spawned robot at " + spawnCoords.toString() + "\n");
                             this.arena.requestLayout();
