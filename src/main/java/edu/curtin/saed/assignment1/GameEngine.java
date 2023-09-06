@@ -19,6 +19,7 @@ import javafx.application.Platform;
 public class GameEngine 
 {
     // UI
+    private App app;
     private JFXArena arena;
 
     // GAME_ENGINE THREADS
@@ -48,7 +49,7 @@ public class GameEngine
     Random rand = new Random();
 
     //CONSTRUCTOR
-    public GameEngine(JFXArena arena, int numRows, int numCols)
+    public GameEngine(App app, int numRows, int numCols)
     {
         if(numRows < 3)
         {
@@ -60,12 +61,23 @@ public class GameEngine
             throw new IllegalStateException("GameEngine only supports grids with at least 3 cols.");
         }
 
-        this.arena = arena;
+        //TODO Fix need for this...
+        this.app = app;
 
         this.numRows = numRows;
         this.numCols = numCols;
 
         initGridSquares(numRows, numCols);
+    }
+
+    public void setArena(JFXArena arena)
+    {
+        if(this.arena != null)
+        {
+            throw new IllegalStateException("GameEngine's Arena has already been set.");
+        }
+
+        this.arena = arena;
     }
 
     private void initGridSquares(int numRows, int numCols)
@@ -184,14 +196,22 @@ public class GameEngine
                         // Add the robot to the list of robots
                         robots.add(nextRobot);
 
+                        //Save the coordinates to print to the screen 
+                        Coordinates spawnCoords = nextRobot.getCoordinates();
+
                         // Add the robot's thread to the list of threads, and start it
                         String threadName = "robot-" + nextRobot.getId();
                         Thread robotThread = new Thread(nextRobot, threadName); //TODO Thread pool
                         robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
                         robotThread.start();
 
+                        
                         // TODO Notify JFXArena to redraw UI (??)
-                        Platform.runLater( () -> {arena.requestLayout();} );
+                        Platform.runLater( () -> {
+                            app.log("Spawned robot at " + spawnCoords.toString() + "\n");
+                            this.arena.requestLayout();
+                        } );
+
                     }                    
                 }  
             }
@@ -200,8 +220,6 @@ public class GameEngine
                 //TODO
             }
 
-
-             
         };
     }
 

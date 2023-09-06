@@ -8,6 +8,9 @@ import javafx.stage.Stage;
 
 public class App extends Application 
 {
+    private JFXArena arena;
+    private TextArea logger;
+
     public static void main(String[] args) 
     {
         launch();        
@@ -16,28 +19,26 @@ public class App extends Application
     @Override
     public void start(Stage stage) 
     {
-        stage.setTitle("Example App (JavaFX)");
-        JFXArena arena = new JFXArena();
+        stage.setTitle("20232430 - Assignment 1 Submission");       
+        
+        int numRows = 9;
+        int numCols = 9;
+
+        GameEngine gameEngine = new GameEngine(this, numRows, numCols);
+        this.arena = new JFXArena(gameEngine, numRows, numCols);
+        gameEngine.setArena(arena);
+        gameEngine.start();
+
         arena.addListener((x, y) ->
         {
             System.out.println("Arena click at (" + x + "," + y + ")");
         });
         
         ToolBar toolbar = new ToolBar();
-//         Button btn1 = new Button("My Button 1");
-//         Button btn2 = new Button("My Button 2");
         Label label = new Label("Score: 999");
-//         toolbar.getItems().addAll(btn1, btn2, label);
         toolbar.getItems().addAll(label);
-        
-//         btn1.setOnAction((event) ->
-//         {
-//             System.out.println("Button 1 pressed");
-//         });
                     
-        TextArea logger = new TextArea();
-        logger.appendText("Hello\n");
-        logger.appendText("World\n");
+        this.logger = new TextArea();
         
         SplitPane splitPane = new SplitPane();
         splitPane.getItems().addAll(arena, logger);
@@ -51,4 +52,15 @@ public class App extends Application
         stage.setScene(scene);
         stage.show();
     }
+
+    public JFXArena getArena()
+    {
+        return this.arena;
+    }
+
+    public void log(String message)
+    {
+        logger.appendText(message);
+    }
+
 }

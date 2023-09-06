@@ -21,7 +21,6 @@ public class JFXArena extends Pane
 {
     private GameEngine gameEngine;
 
-
     // Represents an image to draw
     private Image robotImage;
     private Image undamagedFortressWallImage;
@@ -29,8 +28,8 @@ public class JFXArena extends Pane
     
     // The following values are arbitrary, and you may need to modify them according to the 
     // requirements of your application.
-    private int gridCols = 9;
-    private int gridRows = 9;
+    private int gridCols;
+    private int gridRows;
 
     private double gridSquareSize; // Auto-calculated
     private Canvas canvas; // Used to provide a 'drawing surface'.
@@ -40,16 +39,18 @@ public class JFXArena extends Pane
     /**
      * Creates a new arena object, loading the robot image and initialising a drawing surface.
      */
-    public JFXArena()
+    public JFXArena(GameEngine gameEngine, int numRows, int numCols)
     {
+        this.gridRows = numRows;
+        this.gridCols = numCols;
+
         // Load Images
         this.robotImage = loadImage(Robot.IMAGE_FILE);
         this.undamagedFortressWallImage = loadImage(FortressWall.UNDAMAGED_IMAGE_FILE);
         this.damagedFortressWallImage = loadImage(FortressWall.DAMAGED_IMAGE_FILE);
 
-        // Create and start GameEngine
-        this.gameEngine = new GameEngine(this, gridRows, gridCols);
-        this.gameEngine.start();
+        // Start GameEngine
+        this.gameEngine = gameEngine;
         
         // Draw UI        
         canvas = new Canvas();
@@ -57,9 +58,11 @@ public class JFXArena extends Pane
         canvas.heightProperty().bind(heightProperty());
         getChildren().add(canvas);
     }
-    
+   
+
+
     // Return an Image from a resource filename
-    public Image loadImage(String path)
+    private Image loadImage(String path)
     {
         try(InputStream is = getClass().getClassLoader().getResourceAsStream( path ))
         {
