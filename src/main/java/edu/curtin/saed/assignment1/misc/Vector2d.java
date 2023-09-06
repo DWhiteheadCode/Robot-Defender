@@ -58,6 +58,14 @@ public class Vector2d
         return new Vector2d( newX, newY );
     }
 
+    public Vector2d divide(int denominator)
+    {
+        double newX = this.x / denominator;
+        double newY = this.y / denominator;
+
+        return new Vector2d( newX, newY );
+    }
+
     // Returns the length of this vector
     public double size()
     {

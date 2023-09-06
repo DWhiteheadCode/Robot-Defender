@@ -26,8 +26,7 @@ public class GameEngine
     // GAME_ENGINE THREADS
     private Thread robotSpawnProducerThread;
     private Thread robotSpawnConsumerThread;
-    private Thread wallSpawnConsumerThread;
-    private Thread robotMoveValidatorThread;   
+    private Thread wallSpawnConsumerThread;  
 
     // BLOCKING QUEUES
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
@@ -112,32 +111,29 @@ public class GameEngine
 
     public void start()
     {
-        if(robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || robotMoveValidatorThread != null)
+        if(robotSpawnConsumerThread != null || wallSpawnConsumerThread != null)
         {
             throw new IllegalStateException("Can't start a GameEngine that is already running.");
         }
 
         robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawner");
         wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawner");
-        robotMoveValidatorThread = new Thread(robotMoveValidatorRunnable(), "robot-mover");
         robotSpawnProducerThread = new Thread( new RobotSpawner(this) );
 
         robotSpawnConsumerThread.start();
         wallSpawnConsumerThread.start();
-        robotMoveValidatorThread.start();
         robotSpawnProducerThread.start();
     }
     
     public void stop()
     {
-        if(robotSpawnConsumerThread == null || wallSpawnConsumerThread == null || robotMoveValidatorThread == null)
+        if(robotSpawnConsumerThread == null || wallSpawnConsumerThread == null)
         {
             throw new IllegalStateException("Can't stop a GameEngine that hasn't started.");
         }
 
         robotSpawnConsumerThread.interrupt();
         wallSpawnConsumerThread.interrupt();
-        robotMoveValidatorThread.interrupt();
         robotSpawnProducerThread.interrupt();
     }
 
@@ -236,18 +232,114 @@ public class GameEngine
         return () -> {
 
         };
-    }
-
-    private Runnable robotMoveValidatorRunnable()
-    {
-        return () -> {
-
-        };
-    }
+    }    
 
     public void putNewRobot(Robot robot) throws InterruptedException
     {
         this.robotSpawnBlockingQueue.put(robot);
+    }
+
+    /*
+     * Allows a robot to request to make a move
+     * 
+     * If move is valid
+     * 
+     * Thread: Robot's thread
+     */
+    public boolean requestMove(MoveRequest request) throws InterruptedException
+    {
+        Robot robot = request.getRobot();
+        Vector2d startPos = robot.getCoordinates();
+        Vector2d endPos = startPos.plus( request.getMove() );
+
+        int startX = (int)startPos.x(); // Note: Disregards robot's fractional position. Shouldn't matter if called appropriately
+        int startY = (int)startPos.y(); // Same as above
+
+        int endX = (int)endPos.x(); // Same as above
+        int endY = (int)endPos.y(); // Same as above
+
+        // Out of bounds
+        if(endX < 0 || endX >= numCols || endY < 0 || endY >= numRows)
+        {
+            return false;
+        }
+
+        synchronized(gameStateMutex)
+        {            
+            Location endLocation = gridSquares[endX][endY];
+
+            // Location already occupied
+            if(endLocation.getRobot() != null) 
+            {
+                return false;
+            }
+
+            //Move is valid ----
+
+            // Occupy the end location
+            endLocation.setRobot(robot);
+
+            // Give the robot a callback to call upon move completion
+            robot.setMoveCallback( ()-> 
+            {
+                this.moveCompleted(robot, startX, startY, endX, endY);
+            });           
+
+            return true;
+        }
+    }
+
+    /*
+     * Called when a robot wants to update its position
+     * 
+     * Thread: Runs in Robot's thread
+     */
+    public void updateRobotPos(Robot robot, Vector2d pos)
+    {
+        synchronized(gameStateMutex)
+        {
+            robot.setCoordinates(pos);
+        }
+
+        Platform.runLater( () -> {
+            arena.requestLayout();
+        } );        
+    }
+
+    /*
+     * Runs when a robot finishes its move. 
+     * 
+     * Frees the Location that the robot came from, and checks for Wall collisions
+     * 
+     * Thread: Runs in Robot's thread
+     */
+    public void moveCompleted(Robot robot, int startX, int startY, int endX, int endY)
+    {
+        synchronized(gameStateMutex)
+        {
+            Location startLocation = gridSquares[startX][startY];
+            Location endLocation = gridSquares[endX][endY];
+
+            // Free the start location
+            startLocation.setRobot(null);
+
+            // Check for game over
+            if(endLocation.hasCitadel())
+            {
+                //TODO Gameover
+            }
+
+            //Check for wall collision
+            FortressWall wall = endLocation.getWall();
+            if( wall != null)
+            {
+                robot.destroy();
+                wall.damage();
+            }
+
+        }
+
+
     }
 
     public List<ReadOnlyRobot> getRobots()
@@ -258,7 +350,7 @@ public class GameEngine
         {
             for(Robot r : this.robots)
             {
-                list.add( new ReadOnlyRobot(r));
+                list.add( new ReadOnlyRobot(r) );
             }
         }
 

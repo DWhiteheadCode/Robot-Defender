@@ -35,4 +35,23 @@ public class FortressWall
         return isDamaged;
     }
 
+    //TODO Syncrhonisation
+    public void damage()
+    {
+        if(isDamaged)
+        {
+            destroy();
+            return;
+        }      
+        
+        this.isDamaged = true;
+        //TODO notify gameengine to redraw
+    }
+
+    //TODO 
+    private void destroy()
+    {
+
+    }
+
 }

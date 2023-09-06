@@ -3,9 +3,13 @@ package edu.curtin.saed.assignment1.entities.robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
 
 import edu.curtin.saed.assignment1.entities.robot.moves.*;
 import edu.curtin.saed.assignment1.game_engine.GameEngine;
+import edu.curtin.saed.assignment1.game_engine.MoveRequest;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class Robot implements Runnable
@@ -14,12 +18,16 @@ public class Robot implements Runnable
 
     private final int MIN_MOVE_DELAY_MILLISECONDS = 500;
     private final int MAX_MOVE_DELAY_MILLISECONDS = 2000;
+    private final int MOVE_DURATION_MILLISECONDS = 400;
+    private final int MOVE_ANIMATION_INTERVAL_MILLISECONDS = 40;
 
     private final int id;
     private final long moveDelayMilliseconds;
     private GameEngine gameEngine;
     private Vector2d coordinates;
     
+    private BlockingQueue<RobotMoveCallback> moveCallback = new SynchronousQueue<>();
+
     public Robot(int id, GameEngine gameEngine)
     {
         this.id = id;
@@ -34,9 +42,21 @@ public class Robot implements Runnable
         this.coordinates = null;
     }
 
+    // Runs in GameEngine thread
+    public void setMoveCallback(RobotMoveCallback callback) throws InterruptedException
+    {
+        moveCallback.put(callback);
+    }
+
     public void setCoordinates(Vector2d coordinates)
     {
         this.coordinates = coordinates;
+    }
+
+    //TODO - called when robot runs into a wall
+    public void destroy()
+    {
+
     }
 
     @Override
@@ -65,8 +85,14 @@ public class Robot implements Runnable
                 List<Move> moveOrder = generateMoveOrder(allMoves);
                 
                 //Attempt to make moves until one succeeds
-                
-                
+                Move moveToMake = requestMoves(moveOrder);
+               
+                // Make the move
+                if(moveToMake != null)
+                {
+                    makeMove(moveToMake);
+                }
+
                 Thread.sleep(moveDelayMilliseconds);
             }
             while(!dead);
@@ -77,6 +103,49 @@ public class Robot implements Runnable
         }
 
     }
+
+    /*
+     * Try to make each move in "moves" in order.
+     * 
+     * If a move is successful, return it; otherwise return null
+     */
+    private Move requestMoves(List<Move> moves) throws InterruptedException
+    {
+        for(Move m : moves)
+        {
+            MoveRequest request = new MoveRequest(this, m.getMoveVec());
+                        
+            if(gameEngine.requestMove(request))
+            {
+                return m;
+            }
+        }
+
+        return null;
+    }
+
+    /*
+     * Performs "move" on this robot in intervals specified by class constants
+     * 
+     * Updates GameEngine each interval
+     */
+    private void makeMove(Move move) throws InterruptedException
+    {
+        int numIntervals = MOVE_DURATION_MILLISECONDS / MOVE_ANIMATION_INTERVAL_MILLISECONDS;
+        
+        Vector2d intervalMoveVec = move.getMoveVec().divide(numIntervals); // The vector the robot should be moved by each interval
+
+        for(int i = 0; i < numIntervals; i++)
+        {
+            Vector2d newPos = this.coordinates.plus(intervalMoveVec);
+
+            gameEngine.updateRobotPos(this, newPos);
+
+            Thread.sleep(MOVE_ANIMATION_INTERVAL_MILLISECONDS);
+        }
+
+    }
+
 
     public int getId()
     {
@@ -103,7 +172,11 @@ public class Robot implements Runnable
         return moves;
     }
 
-    // Sort the possible moves based on weighted randomness, with weights corresponding to distance from citadel after making the mvoe
+    /*
+     * Sort list of moves based on weighted randomness, where distanceToCitadel is the weight
+     * 
+     * Returned list prioritises moves with smaller distanceToCitadel at the front of the list
+     */
     private List<Move> generateMoveOrder(List<Move> unorderedMoves)
     {
         double totalDistance = 0;
@@ -117,16 +190,19 @@ public class Robot implements Runnable
 
         Random rand = new Random();
 
-        while(!unorderedMoves.isEmpty())
+        while(!unorderedMoves.isEmpty()) // Each iteration randomly selects one Move from unorderedMoves, and adds it to orderedMoves
         {
             double randNum = rand.nextDouble() * (totalDistance - 1);
             double count = 0;
 
-            for(Move m : unorderedMoves)
+            for(Move m : unorderedMoves) // Find the unorderedMove with the corresponding weight, and add it to the ordered list
             {
                 if( randNum < m.getDistanceToCitadel() + count )
                 {
-                    orderedMoves.add(0, m);
+                    // Add the chosen move to the start of the list. 
+                    // This means items chosen first will get pushed to the back by new items
+                    // Items with larger weights are more likely to be chosen first, thus they will be pushed to the back of the list
+                    orderedMoves.add(0, m); 
                     break;
                 }
 
@@ -141,6 +217,8 @@ public class Robot implements Runnable
 
         return orderedMoves;
     }
+
+    
 
 
 
