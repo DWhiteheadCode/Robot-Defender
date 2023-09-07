@@ -235,9 +235,9 @@ public class GameEngine
                         robotFutures.put( nextRobot.getId(), f );
 
                         
-                        // TODO Redraw JFXArena UI element, and log robot spawn on screen
+                        // Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
-                            app.log("Spawned robot at " + spawnCoords.toString() + "\n");
+                            app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
                             this.arena.requestLayout();
                         } );
                         
