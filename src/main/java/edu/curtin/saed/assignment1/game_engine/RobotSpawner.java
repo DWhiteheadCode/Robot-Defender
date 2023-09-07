@@ -9,7 +9,7 @@ public class RobotSpawner implements Runnable
     
     private GameEngine gameEngine;
     private int robotCount = 0;
-
+   
     public RobotSpawner(GameEngine gameEngine)
     {
         this.gameEngine = gameEngine;
@@ -19,10 +19,11 @@ public class RobotSpawner implements Runnable
     @Override
     public void run() 
     {
+
         try
         {
             Thread.sleep(ROBOT_INITIAL_SPAWN_DELAY); // Done so a robot doesn't spawn before the window is displayed for the first time
-
+         
             while(true)
             {
                 this.robotCount++;

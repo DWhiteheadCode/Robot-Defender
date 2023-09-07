@@ -141,6 +141,13 @@ public class Robot implements Runnable
             Thread.sleep(MOVE_ANIMATION_INTERVAL_MILLISECONDS);
         }
 
+        // Correct any rounding issues
+        double newX = Math.round( coordinates.x() );
+        double newY = Math.round( coordinates.y() );
+
+        this.coordinates = new Vector2d(newX, newY);
+        gameEngine.updateRobotPos(this, getCoordinates());
+
         // Tell the game engine that the move completed
         moveCallback.moveComplete();
         moveCallback = null;

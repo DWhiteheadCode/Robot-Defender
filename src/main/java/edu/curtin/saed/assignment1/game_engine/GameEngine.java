@@ -33,7 +33,7 @@ public class GameEngine
     private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
 
     // GAME STATE INFO - All except "citadel" is considered the same resource, and is locked with gameStateMutex
-    private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread.
+    private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robot threads.
     private List<Thread> robotThreads = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread  TODO - used by robotMoveValidatorThread for robot destruction on wall impact callbacks?
     private List<Robot> robots = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     private List<FortressWall> walls = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
@@ -45,9 +45,7 @@ public class GameEngine
 
     // MUTEXES
     private Object gameStateMutex = new Object(); // Used to lock "gridSquares", "robots", "walls" TODO and robotThreads?
-
-    // MISC
-    Random rand = new Random();
+   
 
     //CONSTRUCTOR
     public GameEngine(App app, int numRows, int numCols)
@@ -147,6 +145,8 @@ public class GameEngine
     {
         return () -> 
         {
+            Random rand = new Random();
+
             try
             {
                 while(true)
@@ -179,7 +179,7 @@ public class GameEngine
                                 }
                             }
 
-                            // Release the mutex until something in the grid changes, possibly freeing a corner
+                            // If no corner is free, release the lock until a robot moves
                             if(unoccupiedCorners.size() == 0)
                             {
                                 gameStateMutex.wait();
@@ -187,7 +187,6 @@ public class GameEngine
                         }
                         while(unoccupiedCorners.size() == 0);
                        
-
                         // Randomly choose one of the unoccupied corners as the robot's spawn point
                         int spawnLocationIdx;
                         if(unoccupiedCorners.size() == 1) // If there is only 1 free corner, use it. Separated due to nextInt() max having to be > min
@@ -196,7 +195,7 @@ public class GameEngine
                         }
                         else
                         {
-                            spawnLocationIdx = rand.nextInt( 0, (unoccupiedCorners.size() -1) );
+                            spawnLocationIdx = rand.nextInt( 0, unoccupiedCorners.size() ); 
                         }
 
                         Location spawnLocation = unoccupiedCorners.get(spawnLocationIdx);
@@ -266,6 +265,11 @@ public class GameEngine
 
         int endX = (int)endPos.x(); // Same as above
         int endY = (int)endPos.y(); // Same as above
+
+        System.out.println("Robot moving: " + robot.getId());
+        System.out.println("\tRobot coords: " + robot.getCoordinates().toString());
+        System.out.println("\tStart coords: (" + startX + ", " + startY + ")" );
+        System.out.println("\tEnd coords: (" + endX + ", " + endY + ")" );
 
         // Out of bounds
         if(endX < 0 || endX >= numCols || endY < 0 || endY >= numRows)
