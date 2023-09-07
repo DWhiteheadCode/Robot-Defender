@@ -74,7 +74,9 @@ public class Robot implements Runnable
         {
             boolean dead = false;
             do
-            {               
+            {       
+                Thread.sleep(this.moveDelayMilliseconds);
+                
                 Vector2d citadelPos = gameEngine.getCitadel();
 
                 //Sort possible moves based on weighted-randomness
@@ -88,9 +90,7 @@ public class Robot implements Runnable
                 if(moveToMake != null)
                 {
                     makeMove(moveToMake);
-                }
-
-                Thread.sleep(this.moveDelayMilliseconds);
+                }                
             }
             while(!dead);
         }
