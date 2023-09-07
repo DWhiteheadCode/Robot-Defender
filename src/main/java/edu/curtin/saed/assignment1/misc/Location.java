@@ -37,7 +37,7 @@ public class Location
     // MUTATORS ----------------------------------
     public void setRobot(Robot newRobot)
     {
-        if(this.robot != null)
+        if(this.robot != null && newRobot != null) // Allows a null newRobot to clear this robot
         {
             throw new IllegalStateException("Can't set robot on an already occupied Location");
         }

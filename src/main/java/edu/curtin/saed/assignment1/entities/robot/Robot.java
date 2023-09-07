@@ -3,8 +3,6 @@ package edu.curtin.saed.assignment1.entities.robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 import edu.curtin.saed.assignment1.entities.robot.moves.*;
 import edu.curtin.saed.assignment1.game_engine.GameEngine;
@@ -25,7 +23,7 @@ public class Robot implements Runnable
     private GameEngine gameEngine;
     private Vector2d coordinates;
     
-    private BlockingQueue<RobotMoveCallback> moveCallback = new SynchronousQueue<>();
+    private RobotMoveCallback moveCallback; 
 
     public Robot(int id, GameEngine gameEngine)
     {
@@ -41,10 +39,11 @@ public class Robot implements Runnable
         this.coordinates = null;
     }
 
-    // Runs in GameEngine thread
-    public void setMoveCallback(RobotMoveCallback callback) throws InterruptedException
+
+    // Runs in Robot thread (called by GameEngine.requestMove(), which itself runs in robot's thread)
+    public void setMoveCallback(RobotMoveCallback callback)
     {
-        moveCallback.put(callback);
+        this.moveCallback = callback;
     }
 
     public void setCoordinates(Vector2d coordinates)
@@ -75,30 +74,29 @@ public class Robot implements Runnable
         {
             boolean dead = false;
             do
-            {
-                //Comapre coords with citadel coords
+            {               
                 Vector2d citadelPos = gameEngine.getCitadel();
-                                
+
                 //Sort possible moves based on weighted-randomness
                 List<Move> allMoves = allMoves(citadelPos);
                 List<Move> moveOrder = generateMoveOrder(allMoves);
-                
-                //Attempt to make moves until one succeeds
+
+                //Attempt to make moves until one succeeds, or none left
                 Move moveToMake = requestMoves(moveOrder);
-               
-                // Make the move
+
+                // If a move was approved, make it
                 if(moveToMake != null)
                 {
                     makeMove(moveToMake);
                 }
 
-                Thread.sleep(moveDelayMilliseconds);
+                Thread.sleep(this.moveDelayMilliseconds);
             }
             while(!dead);
         }
         catch(InterruptedException iE)
         {
-
+            //TODO
         }
 
     }
@@ -143,6 +141,9 @@ public class Robot implements Runnable
             Thread.sleep(MOVE_ANIMATION_INTERVAL_MILLISECONDS);
         }
 
+        // Tell the game engine that the move completed
+        moveCallback.moveComplete();
+        moveCallback = null;
     }
 
 

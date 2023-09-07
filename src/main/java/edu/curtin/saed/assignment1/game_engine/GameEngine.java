@@ -31,15 +31,14 @@ public class GameEngine
     // BLOCKING QUEUES
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
     private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
-    //private BlockingQueue<...> robotMoveBlockingQueue = new ArrayBlockingQueue<>(...);
 
-    // GAME STATE INFO - All except "citadel" is a single resource
+    // GAME STATE INFO - All except "citadel" is considered the same resource, and is locked with gameStateMutex
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robotMoveValidatorThread.
     private List<Thread> robotThreads = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread  TODO - used by robotMoveValidatorThread for robot destruction on wall impact callbacks?
     private List<Robot> robots = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     private List<FortressWall> walls = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     
-    private Vector2d citadel; // Only used by constructor thread, and robotMoveValidatorThread, so does not need to be locked.
+    private Vector2d citadel; // Is never modified after construction, so does not need to be locked
 
     private final int numRows;
     private final int numCols;
@@ -63,7 +62,6 @@ public class GameEngine
             throw new IllegalStateException("GameEngine only supports grids with at least 3 cols.");
         }
 
-        //TODO Fix the need for this...
         this.app = app;
 
         this.numRows = numRows;
@@ -85,9 +83,17 @@ public class GameEngine
     /*
      * Initialises the array and elements that make up the grid.
      * Sets the citadel in the middle of the grid. 
+     * Thread: Runs in the thread that called Constructor (UI thread from App). 
+     *         Doesn't need synchronize, as start() can't have been called prior, 
+     *         so only this thread is accessing resources
      */
     private void initGridSquares(int numRows, int numCols)
     {
+        if(this.gridSquares != null)
+        {
+            throw new IllegalStateException("Grid squares already initialised.");
+        }
+
         //Initialise array
         this.gridSquares = new Location[numRows][numCols];
 
@@ -116,9 +122,9 @@ public class GameEngine
             throw new IllegalStateException("Can't start a GameEngine that is already running.");
         }
 
-        robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawner");
-        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawner");
-        robotSpawnProducerThread = new Thread( new RobotSpawner(this) );
+        robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawn-consumer");
+        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
+        robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
 
         robotSpawnConsumerThread.start();
         wallSpawnConsumerThread.start();
@@ -149,13 +155,14 @@ public class GameEngine
 
                     synchronized(gameStateMutex)
                     {
-                        Location[] corners = new Location[4];
                         List<Location> unoccupiedCorners;
 
                         // Wait until there is at least 1 free corner
                         do
                         {
-                            //Get the Locations from the 4 corners of the map
+                            //Get the Locations of the 4 corners of the map
+                            Location[] corners = new Location[4];
+                            
                             corners[0] = gridSquares[0][0];  // Top left
                             corners[1] = gridSquares[numRows - 1][0]; // Bottom left
                             corners[2] = gridSquares[numRows - 1][numCols - 1]; //Bottom right
@@ -215,7 +222,7 @@ public class GameEngine
                             app.log("Spawned robot at " + spawnCoords.toString() + "\n");
                             this.arena.requestLayout();
                         } );
-
+                        
                     }                    
                 }  
             }
@@ -234,6 +241,8 @@ public class GameEngine
         };
     }    
 
+    // Adds a new robot to the blocking queue 
+    // Thread: Runs in the calling thread (usually the Robot-Spawn-Producer thread)
     public void putNewRobot(Robot robot) throws InterruptedException
     {
         this.robotSpawnBlockingQueue.put(robot);
@@ -287,10 +296,12 @@ public class GameEngine
 
             return true;
         }
+
+        
     }
 
     /*
-     * Called when a robot wants to update its position
+     * Called when a robot wants to update its position (called each animation interval)
      * 
      * Thread: Runs in Robot's thread
      */
@@ -337,11 +348,18 @@ public class GameEngine
                 wall.damage();
             }
 
+            gameStateMutex.notifyAll(); // Notify spawner that a corner might be free
         }
 
 
     }
 
+
+    /*
+     * Returns a List of all robots in the game (as ReadOnlyRobots)
+     * 
+     * Thread: Runs in the calling thread (typically UI)
+     */
     public List<ReadOnlyRobot> getRobots()
     {
         List<ReadOnlyRobot> list = new ArrayList<>();
@@ -352,11 +370,17 @@ public class GameEngine
             {
                 list.add( new ReadOnlyRobot(r) );
             }
+
         }
 
         return list;
     }
 
+    /*
+     * Returns a List of all FortressWalls in the game (as ReadOnlyFortressWalls)
+     * 
+     * Thread: Runs in the calling thread (typically UI)
+     */
     public List<ReadOnlyFortressWall> getWalls()
     {
         List<ReadOnlyFortressWall> list = new ArrayList<>();
@@ -367,6 +391,7 @@ public class GameEngine
             {
                 list.add( new ReadOnlyFortressWall(w));
             }
+
         }
 
         return list;

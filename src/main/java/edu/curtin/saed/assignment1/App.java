@@ -26,9 +26,11 @@ public class App extends Application
         int numCols = 9;
 
         GameEngine gameEngine = new GameEngine(this, numRows, numCols);
+
         this.arena = new JFXArena(gameEngine, numRows, numCols);
         gameEngine.setArena(arena);
         gameEngine.start();
+
 
         arena.addListener((x, y) ->
         {
@@ -51,6 +53,7 @@ public class App extends Application
         
         Scene scene = new Scene(contentPane, 800, 800);
         stage.setScene(scene);
+
         stage.show();
     }
 

@@ -179,6 +179,8 @@ public class JFXArena extends Pane
             drawLabel( gfx, label, r.getCoordinates().x(), r.getCoordinates().y() );
         }
 
+        // TODO Draw citadel
+
     }
     
     
