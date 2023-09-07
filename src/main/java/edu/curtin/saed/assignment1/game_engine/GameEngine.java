@@ -2,17 +2,22 @@ package edu.curtin.saed.assignment1.game_engine;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import edu.curtin.saed.assignment1.entities.robot.*;
 import edu.curtin.saed.assignment1.App;
 import edu.curtin.saed.assignment1.JFXArena;
 import edu.curtin.saed.assignment1.entities.fortress_wall.*;
-import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
-import edu.curtin.saed.assignment1.entities.robot.Robot;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 import edu.curtin.saed.assignment1.misc.Location;
 import javafx.application.Platform;
@@ -28,13 +33,16 @@ public class GameEngine
     private Thread robotSpawnConsumerThread;
     private Thread wallSpawnConsumerThread;  
 
+    // THREAD POOL
+    private ExecutorService robotExecutorService;
+
     // BLOCKING QUEUES
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
     private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
 
     // GAME STATE INFO - All except "citadel" is considered the same resource, and is locked with gameStateMutex
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robot threads.
-    private List<Thread> robotThreads = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread  TODO - used by robotMoveValidatorThread for robot destruction on wall impact callbacks?
+    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // TODO accessed by which threads? Needs synchronized?
     private List<Robot> robots = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     private List<FortressWall> walls = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
     
@@ -64,6 +72,17 @@ public class GameEngine
 
         this.numRows = numRows;
         this.numCols = numCols;
+
+        int numSquares = numRows * numCols;
+
+        // Create a thread pool for robot threads
+        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots)
+        // Destroy unused threads after 10 seconds
+        this.robotExecutorService = new ThreadPoolExecutor(
+            4, (numSquares - 1),
+            10, TimeUnit.SECONDS,
+            new SynchronousQueue<>()
+        );
 
         initGridSquares(numRows, numCols);
     }
@@ -104,8 +123,8 @@ public class GameEngine
         }
 
         //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, favour col right of middle.
-        int middleRow = (numRows / 2) + 1;
-        int middleCol = (numCols / 2) + 1;
+        int middleRow = (numRows / 2);
+        int middleCol = (numCols / 2);
 
         this.gridSquares[middleRow][middleCol].setCitadel(true);
 
@@ -210,11 +229,11 @@ public class GameEngine
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
 
-                        // Add the robot's thread to the list of threads, and start it
-                        String threadName = "robot-" + nextRobot.getId();
-                        Thread robotThread = new Thread(nextRobot, threadName); //TODO Thread pool
-                        robotThreads.add(robotThread); //TODO Synchronise robotThreads list separately to gridsquares?
-                        robotThread.start();
+                                               
+                        //Start the robot, and store a reference to its execution in the map (so it can be interrupted later)
+                        Future<?> f = robotExecutorService.submit(nextRobot);
+                        robotFutures.put( nextRobot.getId(), f );
+
                         
                         // TODO Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
@@ -265,11 +284,6 @@ public class GameEngine
 
         int endX = (int)endPos.x(); // Same as above
         int endY = (int)endPos.y(); // Same as above
-
-        System.out.println("Robot moving: " + robot.getId());
-        System.out.println("\tRobot coords: " + robot.getCoordinates().toString());
-        System.out.println("\tStart coords: (" + startX + ", " + startY + ")" );
-        System.out.println("\tEnd coords: (" + endX + ", " + endY + ")" );
 
         // Out of bounds
         if(endX < 0 || endX >= numCols || endY < 0 || endY >= numRows)

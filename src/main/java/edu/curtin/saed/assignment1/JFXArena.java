@@ -12,6 +12,7 @@ import java.util.*;
 
 import edu.curtin.saed.assignment1.entities.robot.*;
 import edu.curtin.saed.assignment1.game_engine.GameEngine;
+import edu.curtin.saed.assignment1.misc.Vector2d;
 import edu.curtin.saed.assignment1.entities.fortress_wall.*;
 
 
@@ -26,7 +27,10 @@ public class JFXArena extends Pane
     private Image robotImage;
     private Image undamagedFortressWallImage;
     private Image damagedFortressWallImage;
+    private Image citadelImage;
     
+    private static final String CITADEL_IMAGE_FILE = "rg1024-isometric-tower.png";
+
     // The following values are arbitrary, and you may need to modify them according to the 
     // requirements of your application.
     private int gridCols;
@@ -49,6 +53,7 @@ public class JFXArena extends Pane
         this.robotImage = loadImage(Robot.IMAGE_FILE);
         this.undamagedFortressWallImage = loadImage(FortressWall.UNDAMAGED_IMAGE_FILE);
         this.damagedFortressWallImage = loadImage(FortressWall.DAMAGED_IMAGE_FILE);
+        this.citadelImage = loadImage(CITADEL_IMAGE_FILE);
 
         // Start GameEngine
         this.gameEngine = gameEngine;
@@ -154,6 +159,7 @@ public class JFXArena extends Pane
         // ** You will need to adapt this to the requirements of your application. **
         List<ReadOnlyRobot> robots = gameEngine.getRobots();
         List<ReadOnlyFortressWall> walls = gameEngine.getWalls();
+        Vector2d citadelPos = gameEngine.getCitadel();
 
         //Draw all walls
         for(ReadOnlyFortressWall w : walls)
@@ -179,7 +185,8 @@ public class JFXArena extends Pane
             drawLabel( gfx, label, r.getCoordinates().x(), r.getCoordinates().y() );
         }
 
-        // TODO Draw citadel
+        // Draw Citadel
+        drawImage( gfx, citadelImage, citadelPos.x(), citadelPos.y() );
 
     }
     
