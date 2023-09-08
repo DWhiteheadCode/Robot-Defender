@@ -6,7 +6,7 @@ import java.util.Random;
 
 import edu.curtin.saed.assignment1.entities.robot.moves.*;
 import edu.curtin.saed.assignment1.game_engine.GameEngine;
-import edu.curtin.saed.assignment1.game_engine.MoveRequest;
+import edu.curtin.saed.assignment1.game_engine.RobotMoveRequest;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class Robot implements Runnable
@@ -110,7 +110,7 @@ public class Robot implements Runnable
     {
         for(Move m : moves)
         {
-            MoveRequest request = new MoveRequest(this, m.getMoveVec());
+            RobotMoveRequest request = new RobotMoveRequest(this, m.getMoveVec());
                         
             if(gameEngine.requestMove(request))
             {

@@ -52,11 +52,6 @@ public class Location
 
     public void setWall(FortressWall newWall)
     {
-        if(this.wall != null)
-        {
-            throw new IllegalStateException("Can't set wall on an already occupied Location");
-        }
-
         this.wall = newWall;
     }
 

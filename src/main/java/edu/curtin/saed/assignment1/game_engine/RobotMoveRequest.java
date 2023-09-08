@@ -3,12 +3,12 @@ package edu.curtin.saed.assignment1.game_engine;
 import edu.curtin.saed.assignment1.entities.robot.Robot;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
-public class MoveRequest 
+public class RobotMoveRequest 
 {
     private Robot robot;
     private Vector2d move;
 
-    public MoveRequest(Robot robot, Vector2d move)
+    public RobotMoveRequest(Robot robot, Vector2d move)
     {
         if(move.size() > 1)
         {

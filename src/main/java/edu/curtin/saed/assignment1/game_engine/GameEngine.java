@@ -16,13 +16,14 @@ import java.util.concurrent.TimeUnit;
 
 import edu.curtin.saed.assignment1.entities.robot.*;
 import edu.curtin.saed.assignment1.App;
+import edu.curtin.saed.assignment1.ArenaListener;
 import edu.curtin.saed.assignment1.JFXArena;
 import edu.curtin.saed.assignment1.entities.fortress_wall.*;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 import edu.curtin.saed.assignment1.misc.Location;
 import javafx.application.Platform;
 
-public class GameEngine 
+public class GameEngine implements ArenaListener
 {
     // UI
     private App app;
@@ -32,20 +33,24 @@ public class GameEngine
     private Thread robotSpawnProducerThread;
     private Thread robotSpawnConsumerThread;
     private Thread wallSpawnConsumerThread;  
+    private Thread wallSpawnProducerThread;
+
+    // WALL SPAWNER
+    private FortressWallSpawner wallSpawner;
 
     // THREAD POOL
     private ExecutorService robotExecutorService;
 
-    // BLOCKING QUEUES
-    private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(4);
-    private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(20);
+    // BLOCKING QUEUE
+    private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(5);
+    private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(10);
 
     // GAME STATE INFO - All except "citadel" is considered the same resource, and is locked with gameStateMutex
     private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robot threads.
-    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // TODO accessed by which threads? Needs synchronized?
-    private List<Robot> robots = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
-    private List<FortressWall> walls = Collections.synchronizedList(new ArrayList<>()); // Accessed by robotSpawnConsumerThread, robotMoveValidatorThread
-    
+    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // TODO accessed by which threads? Needs synchronizedMap?
+    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>());
+    private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); 
+
     private Vector2d citadel; // Is never modified after construction, so does not need to be locked
 
     private final int numRows;
@@ -76,7 +81,7 @@ public class GameEngine
         int numSquares = numRows * numCols;
 
         // Create a thread pool for robot threads
-        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots)
+        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots). TODO Max may need to change?
         // Destroy unused threads after 10 seconds
         this.robotExecutorService = new ThreadPoolExecutor(
             4, (numSquares - 1),
@@ -134,30 +139,40 @@ public class GameEngine
 
     public void start()
     {
-        if(robotSpawnConsumerThread != null || wallSpawnConsumerThread != null)
+        if(robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || robotSpawnProducerThread != null)
         {
             throw new IllegalStateException("Can't start a GameEngine that is already running.");
         }
 
+        // Create robot producer and consumer
         robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawn-consumer");
-        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
         robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
+        
+        // Create wall producer and consumer
+        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
+        this.wallSpawner = new FortressWallSpawner(this);
+        wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
 
+        // Start all threads
         robotSpawnConsumerThread.start();
-        wallSpawnConsumerThread.start();
         robotSpawnProducerThread.start();
+        wallSpawnConsumerThread.start();
+        wallSpawnProducerThread.start();
     }
     
     public void stop()
     {
-        if(robotSpawnConsumerThread == null || wallSpawnConsumerThread == null)
+        if(robotSpawnConsumerThread == null || robotSpawnProducerThread == null || wallSpawnConsumerThread == null || wallSpawnProducerThread == null)
         {
             throw new IllegalStateException("Can't stop a GameEngine that hasn't started.");
         }
 
+        // TODO Interrupt robots
+
         robotSpawnConsumerThread.interrupt();
-        wallSpawnConsumerThread.interrupt();
         robotSpawnProducerThread.interrupt();
+        wallSpawnConsumerThread.interrupt();
+        wallSpawnProducerThread.interrupt();        
     }
 
     private Runnable robotSpawnConsumerRunnable()
@@ -223,8 +238,8 @@ public class GameEngine
                         spawnLocation.setRobot(nextRobot);
                         nextRobot.setCoordinates( spawnLocation.getCoordinates() );
                         
-                        // Add the robot to the list of robots
-                        robots.add(nextRobot);
+                        // Add the robot to the map
+                        robots.put(nextRobot.getId(), nextRobot);
 
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
@@ -238,9 +253,9 @@ public class GameEngine
                         // Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
                             app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
-                            this.arena.requestLayout();
                         } );
-                        
+
+                        updateUi();                        
                     }                    
                 }  
             }
@@ -255,7 +270,35 @@ public class GameEngine
     private Runnable wallSpawnConsumerRunnable()
     {
         return () -> {
+            try
+            {
+                while(true)
+                {
+                    FortressWall newWall = wallSpawnBlockingQueue.take();
 
+                    Vector2d wallPos = newWall.getCoordinates();
+
+                    int wallX = (int)wallPos.x(); // Note: Disregards fractional position. Shouldn't matter if called appropriately
+                    int wallY = (int)wallPos.y(); // Same as above
+
+                    synchronized(gameStateMutex)
+                    {                        
+                        Location location = gridSquares[wallX][wallY];
+                        location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
+                        placedWalls.add(newWall);
+                    }
+                   
+                    Platform.runLater(() -> {
+                        app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
+                    });
+
+                    updateUi();
+                }
+            }
+            catch(InterruptedException iE)
+            {
+
+            }
         };
     }    
 
@@ -265,6 +308,7 @@ public class GameEngine
     {
         this.robotSpawnBlockingQueue.put(robot);
     }
+   
 
     /*
      * Allows a robot to request to make a move
@@ -273,7 +317,7 @@ public class GameEngine
      * 
      * Thread: Robot's thread
      */
-    public boolean requestMove(MoveRequest request) throws InterruptedException
+    public boolean requestMove(RobotMoveRequest request) throws InterruptedException
     {
         Robot robot = request.getRobot();
         Vector2d startPos = robot.getCoordinates();
@@ -330,9 +374,7 @@ public class GameEngine
             robot.setCoordinates(pos);
         }
 
-        Platform.runLater( () -> {
-            arena.requestLayout();
-        } );        
+        updateUi();    
     }
 
     /*
@@ -384,7 +426,7 @@ public class GameEngine
 
         synchronized(gameStateMutex)
         {
-            for(Robot r : this.robots)
+            for(Robot r : this.robots.values())
             {
                 list.add( new ReadOnlyRobot(r) );
             }
@@ -399,13 +441,13 @@ public class GameEngine
      * 
      * Thread: Runs in the calling thread (typically UI)
      */
-    public List<ReadOnlyFortressWall> getWalls()
+    public List<ReadOnlyFortressWall> getPlacedWalls()
     {
         List<ReadOnlyFortressWall> list = new ArrayList<>();
 
         synchronized(gameStateMutex)
         {
-            for(FortressWall w : walls)
+            for(FortressWall w : placedWalls)
             {
                 list.add( new ReadOnlyFortressWall(w));
             }
@@ -420,4 +462,37 @@ public class GameEngine
         return new Vector2d(citadel);
     }
 
+
+    /*
+     * Called when the user wants to place a wall
+     * 
+     * Thread: Runs in the UI thread
+     */
+    @Override
+    public void squareClicked(int x, int y)
+    {
+        wallSpawner.requestWall(x, y);
+    }
+
+    /*
+     * Returns the number of "placed" walls. This actaully returns the number of the walls 
+     * that have been placed, plus the number of walls pending placement by the consumer thread
+     */
+    public int getNumSpawnedWalls()
+    {
+        return wallSpawnBlockingQueue.size() + placedWalls.size();
+    }
+
+    public void putNewWall(FortressWall wall) throws InterruptedException
+    {
+        wallSpawnBlockingQueue.put(wall);
+    }
+
+
+    public void updateUi()
+    {
+        Platform.runLater( () -> {
+            arena.requestLayout();
+        } );  
+    }
 }

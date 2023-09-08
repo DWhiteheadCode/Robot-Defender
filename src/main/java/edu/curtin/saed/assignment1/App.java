@@ -31,7 +31,6 @@ public class App extends Application
         gameEngine.setArena(arena);
         gameEngine.start();
 
-
         arena.addListener((x, y) ->
         {
             System.out.println("Arena click at (" + x + "," + y + ")");

@@ -13,16 +13,11 @@ public class FortressWall
 
     private GameEngine gameEngine;
 
-    public FortressWall(GameEngine gameEngine)
+    public FortressWall(GameEngine gameEngine, Vector2d coordinates)
     {
         this.gameEngine = gameEngine;
         this.isDamaged = false;
-        this.coordinates = null;
-    }
-
-    public void setCoordinates(Vector2d coordiantes)
-    {
-        this.coordinates = coordiantes;
+        this.coordinates = coordinates;
     }
 
     public Vector2d getCoordinates()
@@ -35,7 +30,6 @@ public class FortressWall
         return isDamaged;
     }
 
-    //TODO Syncrhonisation
     public void damage()
     {
         if(isDamaged)
@@ -45,7 +39,7 @@ public class FortressWall
         }      
         
         this.isDamaged = true;
-        //TODO notify gameengine to redraw
+        gameEngine.updateUi();
     }
 
     //TODO 

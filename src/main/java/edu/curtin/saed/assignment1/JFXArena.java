@@ -55,8 +55,9 @@ public class JFXArena extends Pane
         this.damagedFortressWallImage = loadImage(FortressWall.DAMAGED_IMAGE_FILE);
         this.citadelImage = loadImage(CITADEL_IMAGE_FILE);
 
-        // Start GameEngine
+        // Set GameEngine
         this.gameEngine = gameEngine;
+        this.addListener(gameEngine);
         
         // Draw UI        
         canvas = new Canvas();
@@ -158,7 +159,7 @@ public class JFXArena extends Pane
         // Invoke helper methods to draw things at the current location.
         // ** You will need to adapt this to the requirements of your application. **
         List<ReadOnlyRobot> robots = gameEngine.getRobots();
-        List<ReadOnlyFortressWall> walls = gameEngine.getWalls();
+        List<ReadOnlyFortressWall> walls = gameEngine.getPlacedWalls();
         Vector2d citadelPos = gameEngine.getCitadel();
 
         //Draw all walls
