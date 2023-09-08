@@ -12,6 +12,7 @@ public class App extends Application
     private JFXArena arena;
     private TextArea logger;
     private Label scoreLabel;
+    private Label queuedWallsLabel;
     private GameEngine gameEngine;
 
     public static void main(String[] args) 
@@ -40,7 +41,8 @@ public class App extends Application
         
         ToolBar toolbar = new ToolBar();
         scoreLabel = new Label("Score: 0");
-        toolbar.getItems().addAll(scoreLabel);
+        queuedWallsLabel = new Label("Queued Walls: 0");
+        toolbar.getItems().addAll(scoreLabel, queuedWallsLabel);
                     
         this.logger = new TextArea();
         
@@ -77,6 +79,11 @@ public class App extends Application
     {
         this.scoreLabel.setText("GAME OVER! Final Score: " + finalScore);
         gameEngine.stop();
+    }
+
+    public void setQueuedWalls(int numWalls)
+    {
+        this.queuedWallsLabel.setText("Queued Walls: " + numWalls);
     }
 
 }

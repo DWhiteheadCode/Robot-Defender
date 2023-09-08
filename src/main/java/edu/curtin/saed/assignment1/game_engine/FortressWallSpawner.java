@@ -29,8 +29,14 @@ public class FortressWallSpawner implements Runnable
      * 
      * Runs in the UI thread (hence designed to never block)
      */
-    public void requestWall(int x, int y)
+    public void requestWall(int x, int y, Vector2d citadelPos)
     {
+        // Can't place a wall on the citadel
+        if(x == citadelPos.x() && y == citadelPos.y())
+        {
+            return;
+        }
+
         int spawnedWalls = gameEngine.getNumSpawnedWalls();
         int totalWalls = spawnedWalls + wallRequestBlockingQueue.size();
 
@@ -66,9 +72,11 @@ public class FortressWallSpawner implements Runnable
         {
 
         }
+    }
 
-
-
+    public int queueSize()
+    {
+        return wallRequestBlockingQueue.size();
     }
     
 }

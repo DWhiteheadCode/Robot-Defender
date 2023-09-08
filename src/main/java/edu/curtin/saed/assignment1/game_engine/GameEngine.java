@@ -300,6 +300,8 @@ public class GameEngine implements ArenaListener
                 {
                     FortressWall newWall = wallSpawnBlockingQueue.take();
 
+                    updateQueuedWallsText();
+
                     Vector2d wallPos = newWall.getCoordinates();
 
                     int wallX = (int)wallPos.x(); // Note: Disregards fractional position. Shouldn't matter if called appropriately
@@ -576,7 +578,17 @@ public class GameEngine implements ArenaListener
     @Override
     public void squareClicked(int x, int y)
     {
-        wallSpawner.requestWall(x, y);
+        wallSpawner.requestWall(x, y, getCitadel());
+        updateQueuedWallsText();
+    }
+
+    private void updateQueuedWallsText()
+    {
+        int numWalls = wallSpawner.queueSize();
+
+        Platform.runLater(() -> 
+            {app.setQueuedWalls(numWalls);}
+        );
     }
 
     /*
