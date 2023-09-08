@@ -12,6 +12,7 @@ public class App extends Application
     private JFXArena arena;
     private TextArea logger;
     private Label scoreLabel;
+    private GameEngine gameEngine;
 
     public static void main(String[] args) 
     {
@@ -26,7 +27,7 @@ public class App extends Application
         int numRows = 9;
         int numCols = 9;
 
-        GameEngine gameEngine = new GameEngine(this, numRows, numCols);
+        this.gameEngine = new GameEngine(this, numRows, numCols);
 
         this.arena = new JFXArena(gameEngine, numRows, numCols);
         gameEngine.setArena(arena);
@@ -70,6 +71,12 @@ public class App extends Application
     public void setScore(int score)
     {
         this.scoreLabel.setText("Score: " + score);
+    }
+
+    public void gameOver(int finalScore)
+    {
+        this.scoreLabel.setText("GAME OVER! Final Score: " + finalScore);
+        gameEngine.stop();
     }
 
 }

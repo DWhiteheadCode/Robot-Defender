@@ -48,5 +48,13 @@ public class ScoreCalculator implements Runnable
         }
     }
 
+    public int getScore()
+    {
+        synchronized(mutex)
+        {
+            return score;
+        }
+    }
+
 
 }

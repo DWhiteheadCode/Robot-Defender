@@ -426,12 +426,6 @@ public class GameEngine implements ArenaListener
             // Free the start location
             startLocation.setRobot(null);
 
-            // Check for game over
-            if(endLocation.hasCitadel())
-            {
-                //TODO Gameover
-            }
-
             //Check for wall collision
             FortressWall wall = endLocation.getWall();
             if( wall != null)
@@ -440,11 +434,27 @@ public class GameEngine implements ArenaListener
                 wall.damage();
             }
 
+            // Check for game over
+            if(endLocation.hasCitadel())
+            {
+                gameOver();
+            }
+
             gameStateMutex.notifyAll(); // Notify spawner that a corner might be free
         }
 
 
     }
+
+    private void gameOver()
+    {
+        int finalScore = score.getScore();
+
+        Platform.runLater( () -> {
+            app.gameOver(finalScore);
+        });
+    }
+
 
     /*
      * Called when a robot hits a wall
