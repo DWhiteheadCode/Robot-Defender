@@ -8,8 +8,8 @@ import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class FortressWallSpawner implements Runnable
 {
-    private final int WALL_SPAWN_DELAY_MILLISECONDS = 2000;
-    private final int MAX_NUM_WALLS = 10;
+    private static final int WALL_SPAWN_DELAY_MILLISECONDS = 2000;
+    private static final int MAX_NUM_WALLS = 10;
 
     private BlockingQueue<FortressWall> wallRequestBlockingQueue = new ArrayBlockingQueue<>(MAX_NUM_WALLS);
 

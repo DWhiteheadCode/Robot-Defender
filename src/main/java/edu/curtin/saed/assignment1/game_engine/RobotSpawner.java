@@ -4,8 +4,8 @@ import edu.curtin.saed.assignment1.entities.robot.Robot;
 
 public class RobotSpawner implements Runnable
 {
-    private final long ROBOT_SPAWN_DELAY_MILLISECONDS = 1500;
-    private final long ROBOT_INITIAL_SPAWN_DELAY = 500;
+    private static final long ROBOT_SPAWN_DELAY_MILLISECONDS = 1500;
+    private static final long ROBOT_INITIAL_SPAWN_DELAY = 500;
     
     private GameEngine gameEngine;
     private int robotCount = 0;

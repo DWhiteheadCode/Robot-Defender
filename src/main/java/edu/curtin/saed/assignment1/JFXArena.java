@@ -57,7 +57,6 @@ public class JFXArena extends Pane
 
         // Set GameEngine
         this.gameEngine = gameEngine;
-        this.addListener(gameEngine);
         
         // Draw UI        
         canvas = new Canvas();
@@ -257,6 +256,7 @@ public class JFXArena extends Pane
      *     
      * You shouldn't need to modify this method.
      */
+    /*
     private void drawLine(GraphicsContext gfx, double gridX1, double gridY1, 
                                                double gridX2, double gridY2)
     {
@@ -274,4 +274,5 @@ public class JFXArena extends Pane
                        (gridX2 + 0.5) * gridSquareSize, 
                        (gridY2 + 0.5) * gridSquareSize);
     }
+    */
 }

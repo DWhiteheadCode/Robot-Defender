@@ -13,10 +13,10 @@ public class Robot implements Runnable
 {
     public static final String IMAGE_FILE = "1554047213.png";
 
-    private final int MIN_MOVE_DELAY_MILLISECONDS = 500;
-    private final int MAX_MOVE_DELAY_MILLISECONDS = 2000;
-    private final int MOVE_DURATION_MILLISECONDS = 400;
-    private final int MOVE_ANIMATION_INTERVAL_MILLISECONDS = 40;
+    private static final int MIN_MOVE_DELAY_MILLISECONDS = 500;
+    private static final int MAX_MOVE_DELAY_MILLISECONDS = 2000;
+    private static final int MOVE_DURATION_MILLISECONDS = 400;
+    private static final int MOVE_ANIMATION_INTERVAL_MILLISECONDS = 40;
 
     private final int id;
     private final long moveDelayMilliseconds;

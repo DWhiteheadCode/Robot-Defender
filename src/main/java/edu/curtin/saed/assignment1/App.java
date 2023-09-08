@@ -32,6 +32,8 @@ public class App extends Application
 
         this.arena = new JFXArena(gameEngine, numRows, numCols);
         gameEngine.setArena(arena);
+        arena.addListener(gameEngine);
+
         gameEngine.start();
 
         arena.addListener((x, y) ->

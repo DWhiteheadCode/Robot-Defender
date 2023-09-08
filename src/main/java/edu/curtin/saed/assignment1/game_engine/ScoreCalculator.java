@@ -2,9 +2,9 @@ package edu.curtin.saed.assignment1.game_engine;
 
 public class ScoreCalculator implements Runnable
 {
-    private final int SCORE_DELAY_MILLISECONDS = 1000;
-    private final int PASSIVE_SCORE_INCREMENT = 10;
-    private final int ROBOT_DESTROYED_SCORE = 100;
+    private static final int SCORE_DELAY_MILLISECONDS = 1000;
+    private static final int PASSIVE_SCORE_INCREMENT = 10;
+    private static final int ROBOT_DESTROYED_SCORE = 100;
 
     private int score = 0;
 
