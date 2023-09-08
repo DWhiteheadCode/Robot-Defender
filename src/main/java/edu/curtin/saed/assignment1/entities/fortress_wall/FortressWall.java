@@ -42,10 +42,9 @@ public class FortressWall
         gameEngine.updateUi();
     }
 
-    //TODO 
     private void destroy()
     {
-
+        gameEngine.destroyWall(this);
     }
 
 }

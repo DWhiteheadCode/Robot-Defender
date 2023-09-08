@@ -34,6 +34,7 @@ public class GameEngine implements ArenaListener
     private Thread robotSpawnConsumerThread;
     private Thread wallSpawnConsumerThread;  
     private Thread wallSpawnProducerThread;
+    private Thread scoreThread;
 
     // WALL SPAWNER
     private FortressWallSpawner wallSpawner;
@@ -50,6 +51,7 @@ public class GameEngine implements ArenaListener
     private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // TODO accessed by which threads? Needs synchronizedMap?
     private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>());
     private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); 
+    private ScoreCalculator score;
 
     private Vector2d citadel; // Is never modified after construction, so does not need to be locked
 
@@ -153,26 +155,41 @@ public class GameEngine implements ArenaListener
         this.wallSpawner = new FortressWallSpawner(this);
         wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
 
+        // Create score thread
+        this.score = new ScoreCalculator(this);
+        scoreThread = new Thread(this.score, "score-thread");
+
         // Start all threads
         robotSpawnConsumerThread.start();
         robotSpawnProducerThread.start();
         wallSpawnConsumerThread.start();
         wallSpawnProducerThread.start();
+        scoreThread.start();
     }
-    
+
+    public void updateScore(int score)
+    {
+        Platform.runLater( () -> {app.setScore(score);});
+    }
+
     public void stop()
     {
-        if(robotSpawnConsumerThread == null || robotSpawnProducerThread == null || wallSpawnConsumerThread == null || wallSpawnProducerThread == null)
+        if(robotSpawnConsumerThread == null || robotSpawnProducerThread == null || wallSpawnConsumerThread == null || wallSpawnProducerThread == null || scoreThread == null)
         {
             throw new IllegalStateException("Can't stop a GameEngine that hasn't started.");
         }
 
-        // TODO Interrupt robots
+        // Interrupt all the robot threads
+        for(Future<?> robotFuture : robotFutures.values())
+        {
+            robotFuture.cancel(true);
+        }
 
         robotSpawnConsumerThread.interrupt();
         robotSpawnProducerThread.interrupt();
         wallSpawnConsumerThread.interrupt();
-        wallSpawnProducerThread.interrupt();        
+        wallSpawnProducerThread.interrupt();    
+        scoreThread.interrupt();
     }
 
     private Runnable robotSpawnConsumerRunnable()
@@ -238,6 +255,13 @@ public class GameEngine implements ArenaListener
                         spawnLocation.setRobot(nextRobot);
                         nextRobot.setCoordinates( spawnLocation.getCoordinates() );
                         
+                        // If there is a wall on the spawn point, damage it
+                        FortressWall wallOnSpawnPoint = spawnLocation.getWall();
+                        if(wallOnSpawnPoint != null)
+                        {
+                            wallOnSpawnPoint.damage();
+                        }
+
                         // Add the robot to the map
                         robots.put(nextRobot.getId(), nextRobot);
 
@@ -284,6 +308,14 @@ public class GameEngine implements ArenaListener
                     synchronized(gameStateMutex)
                     {                        
                         Location location = gridSquares[wallX][wallY];
+
+                        // If this wall replaces an existing wall, remove the old wall
+                        FortressWall previousWall = location.getWall();
+                        if(previousWall != null)
+                        {
+                            destroyWall(previousWall);
+                        }
+
                         location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
                         placedWalls.add(newWall);
                     }
@@ -404,7 +436,7 @@ public class GameEngine implements ArenaListener
             FortressWall wall = endLocation.getWall();
             if( wall != null)
             {
-                robot.destroy();
+                destroyRobot(robot);
                 wall.damage();
             }
 
@@ -412,6 +444,69 @@ public class GameEngine implements ArenaListener
         }
 
 
+    }
+
+    /*
+     * Called when a robot hits a wall
+     * 
+     * Cancel's the robot's Future, removes the Future from the list, removes the
+     * robot from the Map of robots, updates the Location, and displays a log on screen
+     * 
+     * Thread: Called by the robot's thread
+     */
+    private void destroyRobot(Robot robot)
+    {
+        synchronized(gameStateMutex)
+        {
+            int id = robot.getId();
+
+            // Interrupt the robot's task, and remove it from the map
+            Future<?> future = robotFutures.get(id);
+            future.cancel(true);
+
+            robotFutures.remove(id);
+
+            // Remove the robot from its location
+            int x = (int)robot.getCoordinates().x(); // Ignores fractional part of coordinate. Shouldn't matter if called appropriately
+            int y = (int)robot.getCoordinates().y(); // Same as above
+
+            Location location = gridSquares[x][y];
+            location.setRobot(null);
+
+            // Remove the robot from the list of active robots
+            robots.remove(id);
+
+            // Increase the score
+            score.robotDestroyed();
+
+            // Show the message on screen
+            String msg = "Robot '" + id + "' hit a wall at (" + x + ", " + y + ")\n";
+            Platform.runLater(() -> {
+                app.log(msg);
+            });
+        }
+
+        
+
+        updateUi();
+    }
+
+    public void destroyWall(FortressWall wall)
+    {
+        synchronized(gameStateMutex)
+        {
+            // Remove the wall from the location
+            int x = (int)wall.getCoordinates().x(); // Ignores fractional part of coordinate. Shouldn't matter if called appropriately
+            int y = (int)wall.getCoordinates().y(); // Same as above
+
+            Location location = gridSquares[x][y];
+            location.setWall(null);
+
+            // Remove the wall from the list of walls 
+            placedWalls.remove(wall);
+        }
+
+        updateUi();
     }
 
 

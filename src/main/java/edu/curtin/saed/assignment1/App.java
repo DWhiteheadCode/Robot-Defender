@@ -11,6 +11,7 @@ public class App extends Application
 {
     private JFXArena arena;
     private TextArea logger;
+    private Label scoreLabel;
 
     public static void main(String[] args) 
     {
@@ -37,8 +38,8 @@ public class App extends Application
         });
         
         ToolBar toolbar = new ToolBar();
-        Label label = new Label("Score: 999");
-        toolbar.getItems().addAll(label);
+        scoreLabel = new Label("Score: 0");
+        toolbar.getItems().addAll(scoreLabel);
                     
         this.logger = new TextArea();
         
@@ -64,6 +65,11 @@ public class App extends Application
     public void log(String message)
     {
         logger.appendText(message);
+    }
+
+    public void setScore(int score)
+    {
+        this.scoreLabel.setText("Score: " + score);
     }
 
 }
