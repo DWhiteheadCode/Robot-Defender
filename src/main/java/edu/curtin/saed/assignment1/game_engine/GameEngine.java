@@ -197,6 +197,8 @@ public class GameEngine implements ArenaListener
             }
         }             
 
+        robotExecutorService.shutdownNow();
+
         robotSpawnConsumerThread.interrupt();
         robotSpawnProducerThread.interrupt();
         wallSpawnConsumerThread.interrupt();
