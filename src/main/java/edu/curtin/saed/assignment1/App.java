@@ -62,6 +62,12 @@ public class App extends Application
         stage.show();
     }
 
+    @Override
+    public void stop() 
+    {
+        gameEngine.stop();
+    }
+
     public JFXArena getArena()
     {
         return this.arena;

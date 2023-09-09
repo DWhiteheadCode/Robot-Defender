@@ -95,7 +95,7 @@ public class Robot implements Runnable
         }
         catch(InterruptedException iE)
         {
-            //TODO
+            // Nothing
         }
 
     }
