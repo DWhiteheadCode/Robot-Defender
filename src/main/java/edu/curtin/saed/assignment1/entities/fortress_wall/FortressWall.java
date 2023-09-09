@@ -20,31 +20,47 @@ public class FortressWall
         this.coordinates = coordinates;
     }
 
+    /*
+     * Returns a copy of this Wall's coordinates
+     * 
+     * These are never modified, and so don't need to be synchronized
+     * 
+     * Thread: Called by wall-spawn-consumer thread, or robot thread
+     */
     public Vector2d getCoordinates()
     {
         return new Vector2d(this.coordinates);
     }
 
+    /*
+     * Returns false if the wall is not damaged, and true if it is.
+     * 
+     * Thread: Called by UI thread. GameEngine is responsible for locking this.
+     */
     public boolean isDamaged()
     {
         return isDamaged;
     }
 
+    /*
+     * Called when a robot hits this wall.
+     * 
+     * If the wall was not damaged prior to this call, it becomes damaged.
+     * If it was damaged prior to this call, it tells the gameEngine that it needs to be destroyed
+     * 
+     * Thread: Called by a robot's thread.
+     */
     public void damage()
     {
         if(isDamaged)
         {
-            destroy();
-            return;
+            gameEngine.destroyWall(this);
+        }
+        else
+        {
+            this.isDamaged = true;
+            gameEngine.updateArenaUi();
         }      
-        
-        this.isDamaged = true;
-        gameEngine.updateArenaUi();
-    }
-
-    private void destroy()
-    {
-        gameEngine.destroyWall(this);
     }
 
 }
