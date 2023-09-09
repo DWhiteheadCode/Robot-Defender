@@ -540,6 +540,7 @@ public class GameEngine implements ArenaListener
      * 
      * Thread: Called from either:
      *             - The Robot's thread (from GameEngine.moveComplete(), if it moved into a wall)
+     *             - Robot-spawn-consumer (if the robot spawned on a wall)
      *             - Whichever thread called GameEnigine.stop() (typically UI)
      */
     private void destroyRobot(Robot robot)
@@ -573,7 +574,8 @@ public class GameEngine implements ArenaListener
      * 
      * Increases the score, displays an on-screen log message; then destroys the robot.
      * 
-     * Thread: Called by the robot's thread from GameEngine.moveComplete() 
+     * Thread: Called by the robot's thread from GameEngine.moveComplete(), or by the robot-spawn-consumer thread
+     * if the robot spawned on a wall
      */
     private void robotHitWall(Robot robot)
     {

@@ -6,6 +6,9 @@ import java.util.concurrent.BlockingQueue;
 import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
+/*
+ * A class for spawning FortressWalls, for use by a GameEngine.
+ */
 public class FortressWallSpawner implements Runnable
 {
     private static final int WALL_SPAWN_DELAY_MILLISECONDS = 2000;
@@ -18,34 +21,6 @@ public class FortressWallSpawner implements Runnable
     public FortressWallSpawner(GameEngine gameEngine)
     {
         this.gameEngine = gameEngine;
-    }
-
-    /**
-     * Requests a wall be added at the given coordinates
-     * 
-     * A wall will be added to the queue if the total number of walls 
-     * (either already placed in the game, or already in the queue)
-     * is less than MAX_NUM_WALLS
-     * 
-     * Runs in the UI thread (hence designed to never block)
-     */
-    public void requestWall(int x, int y, Vector2d citadelPos)
-    {
-        // Can't place a wall on the citadel
-        if(x == citadelPos.x() && y == citadelPos.y())
-        {
-            return;
-        }
-
-        int spawnedWalls = gameEngine.getNumSpawnedWalls();
-        int totalWalls = spawnedWalls + wallRequestBlockingQueue.size();
-
-        if(totalWalls < MAX_NUM_WALLS)
-        {
-            Vector2d coordinates = new Vector2d(x, y);
-
-            wallRequestBlockingQueue.offer(new FortressWall(gameEngine, coordinates));
-        }        
     }
 
     /*
@@ -70,9 +45,39 @@ public class FortressWallSpawner implements Runnable
         }
         catch(InterruptedException iE)
         {
-
+            // Nothing needed here.
         }
     }
+
+    /**
+     * Requests a wall be added at the coordinates (x, y)
+     * 
+     * A wall will be added to the queue only if the total number of walls 
+     * (either already placed in the game, or already in wallRequestBlockingQueue)
+     * is less than MAX_NUM_WALLS
+     * 
+     * Runs in the UI thread (hence designed to never block)
+     */
+    public void requestWall(int x, int y, Vector2d citadelPos)
+    {
+        // Can't place a wall on the citadel
+        if(x == citadelPos.x() && y == citadelPos.y())
+        {
+            return;
+        }
+
+        int spawnedWalls = gameEngine.getNumSpawnedWalls();
+        int totalWalls = spawnedWalls + wallRequestBlockingQueue.size();
+
+        if(totalWalls < MAX_NUM_WALLS)
+        {
+            Vector2d coordinates = new Vector2d(x, y);
+
+            wallRequestBlockingQueue.offer(new FortressWall(gameEngine, coordinates));
+        }        
+    }
+
+    
 
     public int queueSize()
     {

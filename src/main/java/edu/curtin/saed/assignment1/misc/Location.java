@@ -3,12 +3,17 @@ package edu.curtin.saed.assignment1.misc;
 import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
 import edu.curtin.saed.assignment1.entities.robot.Robot;
 
+/*
+ * Represents a location on the game board (i.e. a square in the grid) 
+ * 
+ * GameEngine is responsible for locking mutex(es) related to Locations, and preventing misuse
+ */
 public class Location 
 {
-    private final Vector2d coordinates;
-    private Robot robot;
-    private FortressWall wall;
-    private boolean citadel;
+    private final Vector2d coordinates; // Coordinates of the Location
+    private Robot robot; // The robot that occupies the location (could be null)
+    private FortressWall wall; // The wall that occupies the location (could be null)
+    private boolean citadel; // Whether or not this Location has the citadel
 
     public Location(Vector2d coordinates)
     {
@@ -37,7 +42,7 @@ public class Location
     // MUTATORS ----------------------------------
     public void setRobot(Robot newRobot)
     {
-        if(this.robot != null && newRobot != null) // Allows a null newRobot to clear this robot
+        if(this.robot != null && newRobot != null) // Allows newRobot = null to clear this robot
         {
             throw new IllegalStateException("Can't set robot on an already occupied Location");
         }
@@ -45,19 +50,14 @@ public class Location
         this.robot = newRobot;
     }
 
-    public void removeRobot()
-    {
-        this.robot = null;
-    }
-
     public void setWall(FortressWall newWall)
     {
-        this.wall = newWall;
-    }
+        if(this.wall != null && newWall != null) // Allows newWall = nul to clear this wall
+        {
+            throw new IllegalStateException("Can't set wall on an already occupied Location"); 
+        }   
 
-    public void removeWall()
-    {
-        this.wall = null;
+        this.wall = newWall;
     }
 
     public void setCitadel(boolean citadel)

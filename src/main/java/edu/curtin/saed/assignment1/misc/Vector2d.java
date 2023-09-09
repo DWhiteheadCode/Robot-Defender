@@ -1,5 +1,8 @@
 package edu.curtin.saed.assignment1.misc;
 
+/*
+ * Represents a 2d vector with double (real) x and y components
+ */
 public class Vector2d 
 {
     private double x;
@@ -43,6 +46,7 @@ public class Vector2d
         return "(" + x + ", " + y + ")"; 
     }
 
+    // Returns the vector resulting from (this - vec)
     public Vector2d minus(Vector2d vec)
     {
         double xDelta = this.x - vec.x();
@@ -59,7 +63,8 @@ public class Vector2d
         return new Vector2d( newX, newY );
     }
 
-    public Vector2d divide(int denominator)
+    // Returns the vector resulting from (this / vec)
+    public Vector2d divide(double denominator)
     {
         double newX = this.x / denominator;
         double newY = this.y / denominator;

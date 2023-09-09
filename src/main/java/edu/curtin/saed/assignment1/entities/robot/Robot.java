@@ -63,7 +63,7 @@ public class Robot implements Runnable
 
         try
         {
-            do
+            while(true)
             {       
                 Thread.sleep(this.moveDelayMilliseconds);
                 
@@ -83,7 +83,6 @@ public class Robot implements Runnable
                     makeMove(moveToMake);
                 }                
             }
-            while(true);
         }
         catch(InterruptedException iE)
         {
