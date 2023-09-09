@@ -39,7 +39,7 @@ public class FortressWall
         }      
         
         this.isDamaged = true;
-        gameEngine.updateUi();
+        gameEngine.updateArenaUi();
     }
 
     private void destroy()

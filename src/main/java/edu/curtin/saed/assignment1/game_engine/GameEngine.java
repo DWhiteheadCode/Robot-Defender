@@ -141,7 +141,7 @@ public class GameEngine implements ArenaListener
 
     public void start()
     {
-        if(robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || robotSpawnProducerThread != null)
+        if(robotSpawnProducerThread != null || robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || wallSpawnProducerThread != null || scoreThread != null)
         {
             throw new IllegalStateException("Can't start a GameEngine that is already running.");
         }
@@ -151,9 +151,9 @@ public class GameEngine implements ArenaListener
         robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
         
         // Create wall producer and consumer
-        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
         this.wallSpawner = new FortressWallSpawner(this);
         wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
+        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
 
         // Create score thread
         this.score = new ScoreCalculator(this);
@@ -166,11 +166,7 @@ public class GameEngine implements ArenaListener
         wallSpawnProducerThread.start();
         scoreThread.start();
     }
-
-    public void updateScore(int score)
-    {
-        Platform.runLater( () -> {app.setScore(score);});
-    }
+    
 
     public void stop()
     {
@@ -192,6 +188,28 @@ public class GameEngine implements ArenaListener
         scoreThread.interrupt();
     }
 
+    
+    /*
+     * Returns a runnable containing the logic for the robot spawn consumer.
+     * 
+     * This Runnable represents an "infinite" (interruptible) loop that takes a new robot from 
+     * robotSpawnBlockingQueue whenever it is available, then places it in a random, available
+     * corner in the map.
+     * If no corner is available (not occupied by another robot), it will wait() on the lock,
+     * expecting a notification from any other thread that has updated 'gridSquares'.
+     * 
+     * When placing a robot, this Runnable does the following:
+     *     - Sets the Robot's coordinates
+     *     - Updates the relevant 'gridSquares' Location (with Location.setRobot())
+     *     - Saves a reference to the Robot in 'robots'
+     *     - Starts the robot's Runnable using the thread pool, and stores its
+     *       future in 'robotFutures'
+     *     - Displays a message in the on screen text log.
+     *     - Checks if there is a wall on the spawn point. If so:
+     *            - Damages the wall (which destroys it if already damaged)
+     *            - Destroys the Robot
+     *     - Updates the UI
+     */
     private Runnable robotSpawnConsumerRunnable()
     {
         return () -> 
@@ -253,44 +271,65 @@ public class GameEngine implements ArenaListener
 
                         // Tell the corner that it is occupied, and tell the robot its coordinates
                         spawnLocation.setRobot(nextRobot);
-                        nextRobot.setCoordinates( spawnLocation.getCoordinates() );
-                        
-                        // If there is a wall on the spawn point, damage it
-                        FortressWall wallOnSpawnPoint = spawnLocation.getWall();
-                        if(wallOnSpawnPoint != null)
-                        {
-                            wallOnSpawnPoint.damage();
-                        }
+                        nextRobot.setCoordinates( spawnLocation.getCoordinates() );                        
 
-                        // Add the robot to the map
+
+                        // Add the robot to the map of all robots
                         robots.put(nextRobot.getId(), nextRobot);
 
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
-
                                                
                         //Start the robot, and store a reference to its execution in the map (so it can be interrupted later)
                         Future<?> f = robotExecutorService.submit(nextRobot);
                         robotFutures.put( nextRobot.getId(), f );
-
                         
+
+                        // If there is a wall on the spawn point, damage it
+                        FortressWall wallOnSpawnPoint = spawnLocation.getWall();
+                        if(wallOnSpawnPoint != null)
+                        {
+                            destroyRobot(nextRobot);
+                            wallOnSpawnPoint.damage();
+                        }
+
+
                         // Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
                             app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
                         } );
 
-                        updateUi();                        
+                        updateArenaUi();                        
                     }                    
                 }  
             }
             catch(InterruptedException iE)
             {
-                //TODO
+                // Nothing needs to be done here. 
+                // If the thread is interrupted, we don't need to do anything with 
+                // the rest of the queued robots
             }
 
         };
     }
 
+
+
+    /**
+     * Returns a Runnable containing the logic for the wall spawn consumer.
+     * 
+     * This Runnable represents an "infinite" (interruptible) loop that takes a new wall from 
+     * wallSpawnBlockingQueue whenever it is available, then places it in the location specified 
+     * by the wall's coordinates.
+     * 
+     * When placing a wall, this Runnable does the following:
+     *     - Updates the on screen "Queued Walls" text
+     *     - Checks if the Location already had a wall. If so, this is destroyed.
+     *     - Places the new wall in its Location (with Location.setWall()) 
+     *     - Stores a reference to the wall in 'placedWalls'
+     *     - Displays a message in the on screen text log.
+     *     - Updates the UI
+     */
     private Runnable wallSpawnConsumerRunnable()
     {
         return () -> {
@@ -326,18 +365,23 @@ public class GameEngine implements ArenaListener
                         app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
                     });
 
-                    updateUi();
+                    updateArenaUi();
                 }
             }
             catch(InterruptedException iE)
             {
-
+                // Nothing needs to be done here. 
+                // If the thread is interrupted, we don't need to do anything with 
+                // the rest of the queued walls
             }
         };
     }    
 
-    // Adds a new robot to the blocking queue 
-    // Thread: Runs in the calling thread (usually the Robot-Spawn-Producer thread)
+
+
+    // Adds a new robot to the blocking queue, for consumption by the robot-spawn-consumer 
+    // thread.
+    // Thread: Runs in the calling thread (usually the Robot-Spawn-Producer)
     public void putNewRobot(Robot robot) throws InterruptedException
     {
         this.robotSpawnBlockingQueue.put(robot);
@@ -347,15 +391,20 @@ public class GameEngine implements ArenaListener
     /*
      * Allows a robot to request to make a move
      * 
-     * If move is valid
+     * If the move is valid, this returns true, otherwise returns false. A move is valid if:
+     *     - It does not take the robot out of bounds
+     *     - The destination Location is not already occupied by a robot
      * 
-     * Thread: Robot's thread
+     * If the move is valid, Robot.setMoveCallback() is called, giving the robot
+     * a method to call when it finishes its move (so the GameEngine can perform additional
+     * processing, such as collision detection).
+     * 
+     * Thread: Runs in the calling thread (typically the Robot's thread)
      */
-    public boolean requestMove(RobotMoveRequest request) throws InterruptedException
+    public boolean requestMove(Robot robot, Vector2d move) throws InterruptedException
     {
-        Robot robot = request.getRobot();
         Vector2d startPos = robot.getCoordinates();
-        Vector2d endPos = startPos.plus( request.getMove() );
+        Vector2d endPos = startPos.plus( move );
 
         int startX = (int)startPos.x(); // Note: Disregards robot's fractional position. Shouldn't matter if called appropriately
         int startY = (int)startPos.y(); // Same as above
@@ -392,29 +441,31 @@ public class GameEngine implements ArenaListener
 
             return true;
         }
-
-        
     }
 
     /*
      * Called when a robot wants to update its position (called each animation interval)
      * 
-     * Thread: Runs in Robot's thread
+     * Updates the position of the robot, and updates the UI
+     * 
+     * Thread: Runs in the calling thread (Robot)
      */
-    public void updateRobotPos(Robot robot, Vector2d pos)
+    public void updateRobotPos(Robot robot, Vector2d newPos)
     {
         synchronized(gameStateMutex)
         {
-            robot.setCoordinates(pos);
+            robot.setCoordinates(newPos);
         }
 
-        updateUi();    
+        updateArenaUi();    
     }
 
     /*
      * Runs when a robot finishes its move. 
      * 
-     * Frees the Location that the robot came from, and checks for Wall collisions
+     * - Sets the Robot at Location (startX, startY) to null.
+     * - Checks for Wall collisions at (endX, endY)
+     * - Checks for Citadel collision at (endX, endY)
      * 
      * Thread: Runs in Robot's thread
      */
@@ -442,12 +493,15 @@ public class GameEngine implements ArenaListener
                 gameOver();
             }
 
-            gameStateMutex.notifyAll(); // Notify spawner that a corner might be free
+            gameStateMutex.notifyAll(); // Notify robot-spawn-consumer that a corner might be free
         }
-
-
     }
 
+    /*
+     * Tells 'app' to trigger the gameOver sequence.
+     * 
+     * Thread: "Runs" in the calling thread (typically a Robot's thread)
+     */
     private void gameOver()
     {
         int finalScore = score.getScore();
@@ -485,24 +539,32 @@ public class GameEngine implements ArenaListener
             Location location = gridSquares[x][y];
             location.setRobot(null);
 
-            // Remove the robot from the list of active robots
+            // Remove the robot from the list of robots
             robots.remove(id);
 
             // Increase the score
             score.robotDestroyed();
 
-            // Show the message on screen
+            // Show log message on screen
             String msg = "Robot '" + id + "' hit a wall at (" + x + ", " + y + ")\n";
             Platform.runLater(() -> {
                 app.log(msg);
             });
         }
 
-        
-
-        updateUi();
+        updateArenaUi();
     }
 
+    /*
+     * Called when a wall needs to be destroyed
+     * 
+     * - Removes the wall from its Location
+     * - Removes the wall from the List of placed walls
+     * - Updates the UI
+     * 
+     * Thread: Called by either the wall-spawn-consumer thread (if a wall is being placed on
+     * an existing wall); or by a Robot thread (if a robot has moved onto a pre-damaged wall)
+     */
     public void destroyWall(FortressWall wall)
     {
         synchronized(gameStateMutex)
@@ -518,7 +580,7 @@ public class GameEngine implements ArenaListener
             placedWalls.remove(wall);
         }
 
-        updateUi();
+        updateArenaUi();
     }
 
 
@@ -531,13 +593,12 @@ public class GameEngine implements ArenaListener
     {
         List<ReadOnlyRobot> list = new ArrayList<>();
 
-        synchronized(gameStateMutex)
+        synchronized(gameStateMutex) // Can block....
         {
             for(Robot r : this.robots.values())
             {
                 list.add( new ReadOnlyRobot(r) );
             }
-
         }
 
         return list;
@@ -552,18 +613,25 @@ public class GameEngine implements ArenaListener
     {
         List<ReadOnlyFortressWall> list = new ArrayList<>();
 
-        synchronized(gameStateMutex)
+        synchronized(gameStateMutex) // Can block....
         {
             for(FortressWall w : placedWalls)
             {
                 list.add( new ReadOnlyFortressWall(w));
             }
-
         }
 
         return list;
     }
 
+    /*
+     * Returns the Vector position of the Citadel
+     * 
+     * Note: As the Citadel location is never updated after GameEngine's constructor
+     * is called, this does not need to be locked.
+     * 
+     * Thread: Robot, UI
+     */
     public Vector2d getCitadel()
     {
         return new Vector2d(citadel);
@@ -582,6 +650,11 @@ public class GameEngine implements ArenaListener
         updateQueuedWallsText();
     }
 
+    /*
+     * Updates the on-screen text displaying the number of "queued" walls
+     * 
+     * Thread: Wall-spawn-consumer, UI
+     */
     private void updateQueuedWallsText()
     {
         int numWalls = wallSpawner.queueSize();
@@ -594,22 +667,45 @@ public class GameEngine implements ArenaListener
     /*
      * Returns the number of "placed" walls. This actaully returns the number of the walls 
      * that have been placed, plus the number of walls pending placement by the consumer thread
+     * (i.e.: those that are in wallSpawnBlockingQueue)
+     * 
+     * Thread: FortressWallSpawner
      */
     public int getNumSpawnedWalls()
     {
         return wallSpawnBlockingQueue.size() + placedWalls.size();
     }
 
+    /*
+     * Add a new wall to the wallSpawnBlockingQueue, for consumption by wall-spawn-consumer
+     * 
+     * Thread: Wall-spawn-producer
+     */
     public void putNewWall(FortressWall wall) throws InterruptedException
     {
         wallSpawnBlockingQueue.put(wall);
     }
 
-
-    public void updateUi()
+    /*
+     * Called to update the UI of the grid portion of the game (i.e.: the arena)
+     * 
+     * Thread: Wall-spawn-consumer, robot-spawn-consumer, Robots
+     */
+    public void updateArenaUi()
     {
         Platform.runLater( () -> {
             arena.requestLayout();
         } );  
     }
+
+    /*
+     * Updates the score on-screen
+     * 
+     * Threads: score
+     */
+    public void updateScore(int score)
+    {
+        Platform.runLater( () -> {app.setScore(score);});
+    }
+
 }

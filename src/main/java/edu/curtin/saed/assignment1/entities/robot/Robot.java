@@ -6,7 +6,6 @@ import java.util.Random;
 
 import edu.curtin.saed.assignment1.entities.robot.moves.*;
 import edu.curtin.saed.assignment1.game_engine.GameEngine;
-import edu.curtin.saed.assignment1.game_engine.RobotMoveRequest;
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
 public class Robot implements Runnable
@@ -23,7 +22,7 @@ public class Robot implements Runnable
     private GameEngine gameEngine;
     private Vector2d coordinates;
     
-    private RobotMoveCallback moveCallback; 
+    private RobotMoveCallback moveCallback;
 
     public Robot(int id, GameEngine gameEngine)
     {
@@ -40,10 +39,10 @@ public class Robot implements Runnable
     }
 
 
-    // Runs in Robot thread (called by GameEngine.requestMove(), which itself runs in robot's thread)
+    // Runs in Robot thread (called by GameEngine.requestMove(), which itself is called by the robot's thread)
     public void setMoveCallback(RobotMoveCallback callback)
     {
-        this.moveCallback = callback;
+        this.moveCallback = callback;          
     }
 
     public void setCoordinates(Vector2d coordinates)
@@ -109,10 +108,8 @@ public class Robot implements Runnable
     private Move requestMoves(List<Move> moves) throws InterruptedException
     {
         for(Move m : moves)
-        {
-            RobotMoveRequest request = new RobotMoveRequest(this, m.getMoveVec());
-                        
-            if(gameEngine.requestMove(request))
+        {             
+            if(  gameEngine.requestMove(this, m.getMoveVec())  )
             {
                 return m;
             }
