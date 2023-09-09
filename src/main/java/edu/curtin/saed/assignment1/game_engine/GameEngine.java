@@ -1,9 +1,11 @@
 package edu.curtin.saed.assignment1.game_engine;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -30,11 +32,11 @@ public class GameEngine implements ArenaListener
     private JFXArena arena;
 
     // GAME_ENGINE THREADS
-    private Thread robotSpawnProducerThread;
-    private Thread robotSpawnConsumerThread;
-    private Thread wallSpawnConsumerThread;  
-    private Thread wallSpawnProducerThread;
-    private Thread scoreThread;
+    private volatile Thread robotSpawnProducerThread;
+    private volatile Thread robotSpawnConsumerThread;
+    private volatile Thread wallSpawnConsumerThread;  
+    private volatile Thread wallSpawnProducerThread;
+    private volatile Thread scoreThread;
 
     // WALL SPAWNER
     private FortressWallSpawner wallSpawner;
@@ -175,11 +177,27 @@ public class GameEngine implements ArenaListener
             throw new IllegalStateException("Can't stop a GameEngine that hasn't started.");
         }
 
-        // Interrupt all the robot threads
-        for(Future<?> robotFuture : robotFutures.values())
+        System.out.println("Start of stop: " + Thread.activeCount());
+
+        // This doesn't destroy the robots, but it stops their tasks.
+        // This approach is preferred as it stops the robots disappearing when 
+        // the game ends.
+        synchronized(gameStateMutex)
         {
-            robotFuture.cancel(true);
-        }
+            for(Robot r : robots.values())
+            {
+                int id = r.getId();
+                Future<?> task = robotFutures.get(id);
+
+                // Null check is needed because gameover() calls "GameEngine.stop()",
+                // which can then be followed by closing the window, which calls App.stop(), which calls GameEngine.stop()
+                if(task != null) 
+                {
+                    task.cancel(true);
+                    robotFutures.remove(id);
+                }                
+            }
+        }             
 
         robotSpawnConsumerThread.interrupt();
         robotSpawnProducerThread.interrupt();
@@ -187,6 +205,9 @@ public class GameEngine implements ArenaListener
         wallSpawnProducerThread.interrupt();    
         scoreThread.interrupt();
     }
+ 
+    
+
 
     
     /*
@@ -289,7 +310,7 @@ public class GameEngine implements ArenaListener
                         FortressWall wallOnSpawnPoint = spawnLocation.getWall();
                         if(wallOnSpawnPoint != null)
                         {
-                            destroyRobot(nextRobot);
+                            robotHitWall(nextRobot);
                             wallOnSpawnPoint.damage();
                         }
 
@@ -483,7 +504,7 @@ public class GameEngine implements ArenaListener
             FortressWall wall = endLocation.getWall();
             if( wall != null)
             {
-                destroyRobot(robot);
+                robotHitWall(robot);
                 wall.damage();
             }
 
@@ -513,12 +534,15 @@ public class GameEngine implements ArenaListener
 
 
     /*
-     * Called when a robot hits a wall
+     * Destroys a robobt by doing the following:
+     *     - Stops its task
+     *     - Removes its future from the robotFutures Map
+     *     - Calls setRobot(null) on the Location where the Robot was
+     *     - Removes the robot from the robots Map
      * 
-     * Cancel's the robot's Future, removes the Future from the list, removes the
-     * robot from the Map of robots, updates the Location, and displays a log on screen
-     * 
-     * Thread: Called by the robot's thread
+     * Thread: Called from either:
+     *             - The Robot's thread (from GameEngine.moveComplete(), if it moved into a wall)
+     *             - Whichever thread called GameEnigine.stop() (typically UI)
      */
     private void destroyRobot(Robot robot)
     {
@@ -526,7 +550,7 @@ public class GameEngine implements ArenaListener
         {
             int id = robot.getId();
 
-            // Interrupt the robot's task, and remove it from the map
+            // Interrupt the robot's task, and remove it from the map of Futures
             Future<?> future = robotFutures.get(id);
             future.cancel(true);
 
@@ -539,8 +563,29 @@ public class GameEngine implements ArenaListener
             Location location = gridSquares[x][y];
             location.setRobot(null);
 
-            // Remove the robot from the list of robots
+            // Remove the robot from the map of robots
             robots.remove(id);
+        }
+
+        updateArenaUi();
+    }
+
+    /*
+     * Called when a robot hits a wall
+     * 
+     * Increases the score, displays an on-screen log message; then destroys the robot.
+     * 
+     * Thread: Called by the robot's thread from GameEngine.moveComplete() 
+     */
+    private void robotHitWall(Robot robot)
+    {
+        synchronized(gameStateMutex)
+        {
+            int id = robot.getId();
+
+            // Remove the robot from its location
+            int x = (int)robot.getCoordinates().x(); // Ignores fractional part of coordinate. Shouldn't matter if called appropriately
+            int y = (int)robot.getCoordinates().y(); // Same as above
 
             // Increase the score
             score.robotDestroyed();
@@ -552,7 +597,7 @@ public class GameEngine implements ArenaListener
             });
         }
 
-        updateArenaUi();
+        destroyRobot(robot);
     }
 
     /*
