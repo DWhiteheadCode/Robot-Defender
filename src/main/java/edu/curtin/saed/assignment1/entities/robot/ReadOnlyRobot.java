@@ -2,6 +2,10 @@ package edu.curtin.saed.assignment1.entities.robot;
 
 import edu.curtin.saed.assignment1.misc.Vector2d;
 
+/*
+ * Represents a read-only version of a Robot, which is useful to prevent
+ * the need to lock the mutex relating to the original robot. 
+ */
 public class ReadOnlyRobot
 {
     private final int id;
