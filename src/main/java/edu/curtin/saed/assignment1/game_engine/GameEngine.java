@@ -29,7 +29,7 @@ public class GameEngine implements ArenaListener
     private App app;
     private JFXArena arena;
 
-    // GAME_ENGINE THREADS
+    // GAME ENGINE THREADS
     private volatile Thread robotSpawnProducerThread;
     private volatile Thread robotSpawnConsumerThread;
     private volatile Thread wallSpawnConsumerThread;  
@@ -39,27 +39,28 @@ public class GameEngine implements ArenaListener
     // WALL SPAWNER
     private FortressWallSpawner wallSpawner;
 
-    // THREAD POOL
+    // ROBOT THREAD POOL
     private ExecutorService robotExecutorService;
 
     // BLOCKING QUEUE
-    private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(5);
-    private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(10);
+    private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(5); // robot-spawn-producer -> robot-spawn-consumer
+    private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(10); // wall-spawn-producer -> wall-spawn-consumer
 
-    // GAME STATE INFO - All except "citadel" is considered the same resource, and is locked with gameStateMutex
-    private Location[][] gridSquares; // Accessed by robotSpawnConsumerThread, wallSpawnConsumerThread and robot threads.
-    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // TODO accessed by which threads? Needs synchronizedMap?
-    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>());
-    private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); 
-    private ScoreCalculator score;
+    // GAME STATE INFO - Considered the same resource, and locked with gameStateMutex; unless otherwise specified
+    private Location[][] gridSquares;
+    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // A map of all robot TASKS (futures)
+    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>()); // A map of all active robots
+    private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); // A list of all active walls
+
+    private ScoreCalculator score; // Handles its own locking
 
     private Vector2d citadel; // Is never modified after construction, so does not need to be locked
 
-    private final int numRows;
-    private final int numCols;
+    private final int numRows; // Can't be modified, so don't need to be locked
+    private final int numCols; // Can't be modified, so don't need to be locked
 
     // MUTEXES
-    private Object gameStateMutex = new Object(); // Used to lock "gridSquares", "robots", "walls" TODO and robotThreads?
+    private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables
    
 
     //CONSTRUCTOR
@@ -83,7 +84,7 @@ public class GameEngine implements ArenaListener
         int numSquares = numRows * numCols;
 
         // Create a thread pool for robot threads
-        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots). TODO Max may need to change?
+        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots). TODO Max number of threads may be sub-optimal
         // Destroy unused threads after 10 seconds
         this.robotExecutorService = new ThreadPoolExecutor(
             4, (numSquares - 1),
@@ -107,6 +108,7 @@ public class GameEngine implements ArenaListener
     /*
      * Initialises the array and elements that make up the grid.
      * Sets the citadel in the middle of the grid. 
+     * 
      * Thread: Runs in the thread that called Constructor (UI thread from App). 
      *         Doesn't need synchronize, as start() can't have been called prior, 
      *         so only this thread is accessing resources
@@ -139,7 +141,7 @@ public class GameEngine implements ArenaListener
     }
 
     /*
-     * Starts the threads necessary for the game enging to function.
+     * Starts the threads necessary for the game engine to function.
      * 
      * This includes:
      *     - robotSpawnConsumerThread
@@ -148,8 +150,7 @@ public class GameEngine implements ArenaListener
      *     - wallSpawnProducerThread
      *     - scoreThread
      * 
-     * Note: robotSpawnConsumerThread allocates additional tasks to robotExecutorService
-     * 
+     * Note: robotSpawnConsumerThread allocates additional tasks to robotExecutorService threads
      */
     public void start()
     {
@@ -197,6 +198,7 @@ public class GameEngine implements ArenaListener
         // Interrupts all Robot threads
         robotExecutorService.shutdownNow();
 
+        // Interrupts all GameEngine threads
         robotSpawnConsumerThread.interrupt();
         robotSpawnProducerThread.interrupt();
         wallSpawnConsumerThread.interrupt();
@@ -366,20 +368,24 @@ public class GameEngine implements ArenaListener
                     {                        
                         Location location = gridSquares[wallX][wallY];
 
-                        // If this wall replaces an existing wall, remove the old wall
-                        FortressWall previousWall = location.getWall();
-                        if(previousWall != null)
+                        // Ignore the build command if there is a robot at this location
+                        if(location.getRobot() == null)
                         {
-                            destroyWall(previousWall);
-                        }
+                            // If this wall replaces an existing wall, remove the old wall
+                            FortressWall previousWall = location.getWall();
+                            if(previousWall != null)
+                            {
+                                destroyWall(previousWall);
+                            }                   
+                            
+                            location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
+                            placedWalls.add(newWall); 
 
-                        location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
-                        placedWalls.add(newWall);
+                            Platform.runLater(() -> {
+                                app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
+                            });
+                        }                   
                     }
-                   
-                    Platform.runLater(() -> {
-                        app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
-                    });
 
                     updateArenaUi();
                 }

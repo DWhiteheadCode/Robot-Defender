@@ -62,6 +62,9 @@ public class App extends Application
         stage.show();
     }
 
+    /*
+     * Called when the window is closed
+     */
     @Override
     public void stop() 
     {

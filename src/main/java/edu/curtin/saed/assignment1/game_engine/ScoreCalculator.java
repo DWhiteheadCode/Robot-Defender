@@ -5,7 +5,7 @@ package edu.curtin.saed.assignment1.game_engine;
  */
 public class ScoreCalculator implements Runnable
 {
-    private static final int PASSIVE_SCORE_DELAY_MILLISECONDS = 1000;
+    private static final int PASSIVE_SCORE_DELAY_MILLISECONDS = 1000; // 1 second
     private static final int PASSIVE_SCORE_INCREMENT = 10;
     private static final int ROBOT_DESTROYED_SCORE = 100;
 

@@ -11,7 +11,7 @@ import edu.curtin.saed.assignment1.misc.Vector2d;
  */
 public class FortressWallSpawner implements Runnable
 {
-    private static final int WALL_SPAWN_DELAY_MILLISECONDS = 2000;
+    private static final int WALL_SPAWN_DELAY_MILLISECONDS = 2000; // The delay after building 1 wall before the next can be built
     private static final int MAX_NUM_WALLS = 10;
 
     private BlockingQueue<FortressWall> wallRequestBlockingQueue = new ArrayBlockingQueue<>(MAX_NUM_WALLS);

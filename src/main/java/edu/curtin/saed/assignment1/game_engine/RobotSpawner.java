@@ -8,7 +8,6 @@ import edu.curtin.saed.assignment1.entities.robot.Robot;
 public class RobotSpawner implements Runnable
 {
     private static final long ROBOT_SPAWN_DELAY_MILLISECONDS = 1500;
-    private static final long ROBOT_INITIAL_SPAWN_DELAY = 500;
     
     private GameEngine gameEngine;
     private int robotCount = 0; // Tracks the number of robots created by this spawner. Used for robot.id
@@ -28,16 +27,14 @@ public class RobotSpawner implements Runnable
     {
         try
         {
-            Thread.sleep(ROBOT_INITIAL_SPAWN_DELAY); // Added so a robot doesn't spawn before the window is displayed for the first time
-         
             while(true)
             {
+                Thread.sleep(ROBOT_SPAWN_DELAY_MILLISECONDS);
+
                 this.robotCount++;
                 Robot robot = new Robot(robotCount, gameEngine);
                 
                 this.gameEngine.putNewRobot(robot);
-
-                Thread.sleep(ROBOT_SPAWN_DELAY_MILLISECONDS);
             }
         }
         catch(InterruptedException iE)
