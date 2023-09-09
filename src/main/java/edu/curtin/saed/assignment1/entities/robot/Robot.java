@@ -28,6 +28,7 @@ public class Robot implements Runnable
     {
         this.id = id;
 
+        // Generate a random moveDelay between MIN and MAX move delays (inclusive)
         Random rand = new Random();
         this.moveDelayMilliseconds = rand.nextLong(
             MIN_MOVE_DELAY_MILLISECONDS,
@@ -35,27 +36,18 @@ public class Robot implements Runnable
         );
         
         this.gameEngine = gameEngine;
-        this.coordinates = null;
+        this.coordinates = null; // Coordinates must be set when the Robot is placed into the map by the gameEngine
     }
 
 
-    // Runs in Robot thread (called by GameEngine.requestMove(), which itself is called by the robot's thread)
-    public void setMoveCallback(RobotMoveCallback callback)
-    {
-        this.moveCallback = callback;          
-    }
-
-    public void setCoordinates(Vector2d coordinates)
-    {
-        this.coordinates = coordinates;
-    }
-
-    //TODO - called when robot runs into a wall
-    public void destroy()
-    {
-
-    }
-
+    /*
+     * Defines the Robot's logic, as follows:
+     *     - Sleeps for moveDelayMilliseconds
+     *     - Determines its movePreferenceOrder based on citadel distance
+     *     - Attempts to make moves until all moves have been tried, or GameEngine approves one
+     *         - If a move was accepted, that move is made
+     * 
+     */
     @Override
     public void run() 
     {
@@ -71,19 +63,19 @@ public class Robot implements Runnable
 
         try
         {
-            boolean dead = false;
             do
             {       
                 Thread.sleep(this.moveDelayMilliseconds);
                 
                 Vector2d citadelPos = gameEngine.getCitadel();
 
-                //Sort possible moves based on weighted-randomness
+                // Sort possible moves based on weighted-randomness, with preference for moves that 
+                // result in the robot being closer to the citadel
                 List<Move> allMoves = allMoves(citadelPos);
-                List<Move> moveOrder = generateMoveOrder(allMoves);
+                List<Move> movePreferenceOrder = generateMoveOrder(allMoves);
 
                 //Attempt to make moves until one succeeds, or none left
-                Move moveToMake = requestMoves(moveOrder);
+                Move moveToMake = requestMoves(movePreferenceOrder);
 
                 // If a move was approved, make it
                 if(moveToMake != null)
@@ -91,14 +83,41 @@ public class Robot implements Runnable
                     makeMove(moveToMake);
                 }                
             }
-            while(!dead);
+            while(true);
         }
         catch(InterruptedException iE)
         {
-            // Nothing
+            // Nothing needed here 
         }
 
     }
+
+
+    /*
+     * Sets a callback for this Robot to run when it finishes its move
+     * 
+     * Thread: Runs in the robot's thread, called by GameEngine.requestMove(), which is called by Robot.run()
+     */
+    public void setMoveCallback(RobotMoveCallback callback)
+    {
+        if(this.moveCallback != null)
+        {
+            throw new IllegalStateException("Can't set moveCallback for a robot as it already has one.");
+        }
+
+        this.moveCallback = callback;          
+    }
+
+    /*
+     * Set the coordinates of this Robot
+     * 
+     * Thread: Called by robot-spawn-consumer thread initially, but only by this Robot's thread after that.
+     */
+    public void setCoordinates(Vector2d coordinates)
+    {
+        this.coordinates = coordinates;
+    }
+
 
     /*
      * Try to make each move in "moves" in order.
@@ -129,6 +148,7 @@ public class Robot implements Runnable
         
         Vector2d intervalMoveVec = move.getMoveVec().divide(numIntervals); // The vector the robot should be moved by each interval
 
+        // One loop represents one animation interval (i.e. one frame)
         for(int i = 0; i < numIntervals; i++)
         {
             Vector2d newPos = this.coordinates.plus(intervalMoveVec);
@@ -138,14 +158,14 @@ public class Robot implements Runnable
             Thread.sleep(MOVE_ANIMATION_INTERVAL_MILLISECONDS);
         }
 
-        // Correct any rounding issues
+        // Correct any floating point issues, with one final position update
         double newX = Math.round( coordinates.x() );
         double newY = Math.round( coordinates.y() );
 
         this.coordinates = new Vector2d(newX, newY);
         gameEngine.updateRobotPos(this, getCoordinates());
 
-        // Tell the game engine that the move completed
+        // Tell the game engine that the move completed, and clear the callback for future moves
         moveCallback.moveComplete();
         moveCallback = null;
     }
@@ -153,7 +173,7 @@ public class Robot implements Runnable
 
     public int getId()
     {
-        return this.id;
+        return this.id; // Doesn't change, and thus doesn't need to be synchronised
     }
 
     public Vector2d getCoordinates()
@@ -162,8 +182,10 @@ public class Robot implements Runnable
     }
 
     
-
-    // Calculates the displacement from the citadel after making each possible move
+    /*
+     * Returns a list containing all possible moves the robot could make
+     * (Up, down, left, right).
+     */
     private List<Move> allMoves(Vector2d citadelPos)
     {
         List<Move> moves = new ArrayList<>();
@@ -177,9 +199,38 @@ public class Robot implements Runnable
     }
 
     /*
-     * Sort list of moves based on weighted randomness, where distanceToCitadel is the weight
+     * Sorts the list of possible moves based on weighted-randomness.
+     * Move weightings are the robot's distance from the citadel after making that move.
      * 
-     * Returned list prioritises moves with smaller distanceToCitadel at the front of the list
+     * E.g.:
+     *      Consider the following possible moves, and their corresponding distances from the citadel:
+     *          UP:      5
+     *          DOWN:    10
+     *          LEFT:    3
+     *          RIGHT:   7
+     * 
+     *      On the first iteration, each move would have the following likelihoods of being "chosen"
+     *          UP:      5 / (5 + 10 + 3 + 7)
+     *          DOWN:    10 / (5 + 10 + 3 + 7)
+     *          LEFT:    3 / (5 + 10 + 3 + 7)
+     *          RIGHT:   7 / (5 + 10 + 3 + 7)
+     * 
+     *      After this iteration, the chosen move is added to the front of "orderedMoves", and is removed from "unorderedMoves"
+     *          Assuming the most likely move is chosen:
+     *              unorderedMoves = {UP, LEFT, RIGHT}  
+     *              orderedMoves = {DOWN}
+     * 
+     *      For the next iteration, the remaining moves have the following probabilities of being chosen:
+     *          UP:      5 / (5 + 3 + 7)
+     *          LEFT:    3 / (5 + 3 + 7)
+     *          RIGHT:   7 / (5 + 3 + 7)
+     * 
+     *      Assuming the most likely move is chosen:
+     *              unorderedMoves = {UP, LEFT}  
+     *              orderedMoves = {RIGHT, DOWN}
+     *              
+     *              Notice how "RIGHT", was placed in front of "DOWN" in the list.
+     *                  This ensures the moves with the smallest distance from the citadel are more likely to end up at the start of the list    * 
      */
     private List<Move> generateMoveOrder(List<Move> unorderedMoves)
     {
@@ -194,7 +245,7 @@ public class Robot implements Runnable
 
         Random rand = new Random();
 
-        while(!unorderedMoves.isEmpty()) // Each iteration randomly selects one Move from unorderedMoves, and adds it to orderedMoves
+        while(!unorderedMoves.isEmpty()) // Each iteration (weighted) randomly selects one Move from unorderedMoves, and adds it to orderedMoves
         {
             double randNum = rand.nextDouble() * (totalDistance - 1);
             double count = 0;
@@ -215,8 +266,7 @@ public class Robot implements Runnable
             }
 
             totalDistance -= orderedMoves.get(0).getDistanceToCitadel();
-            unorderedMoves.remove( orderedMoves.get(0) );
-            
+            unorderedMoves.remove( orderedMoves.get(0) );            
         }
 
         return orderedMoves;
