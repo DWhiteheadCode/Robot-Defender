@@ -138,7 +138,19 @@ public class GameEngine implements ArenaListener
         this.citadel = new Vector2d(middleCol, middleRow);
     }
 
-
+    /*
+     * Starts the threads necessary for the game enging to function.
+     * 
+     * This includes:
+     *     - robotSpawnConsumerThread
+     *     - robotSpawnProducerThread
+     *     - wallSpawnConsumerThread
+     *     - wallSpawnProducerThread
+     *     - scoreThread
+     * 
+     * Note: robotSpawnConsumerThread allocates additional tasks to robotExecutorService
+     * 
+     */
     public void start()
     {
         if(robotSpawnProducerThread != null || robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || wallSpawnProducerThread != null || scoreThread != null)
@@ -167,7 +179,14 @@ public class GameEngine implements ArenaListener
         scoreThread.start();
     }
     
-
+    /*
+     * Interrupts all actively running Threads. Shuts down the ExecutorService used for Robots.
+     * 
+     * Note: 
+     * This does not impact the game state in any way (such as removing robots from the grid, or removing robot tasks from the robotFutures Map), 
+     * as it is assumed that this GameEngine won't be used again. This has the added benefit of not removing robots from the screen after a gameover(),
+     * allowing the player to see where robots were at the time of the gameover. 
+     */
     public void stop()
     {
         if(robotSpawnConsumerThread == null || robotSpawnProducerThread == null || wallSpawnConsumerThread == null || wallSpawnProducerThread == null || scoreThread == null)
@@ -175,28 +194,7 @@ public class GameEngine implements ArenaListener
             throw new IllegalStateException("Can't stop a GameEngine that hasn't started.");
         }
 
-        System.out.println("Start of stop: " + Thread.activeCount());
-
-        // This doesn't destroy the robots, but it stops their tasks.
-        // This approach is preferred as it stops the robots disappearing when 
-        // the game ends.
-        synchronized(gameStateMutex)
-        {
-            for(Robot r : robots.values())
-            {
-                int id = r.getId();
-                Future<?> task = robotFutures.get(id);
-
-                // Null check is needed because gameover() calls "GameEngine.stop()",
-                // which can then be followed by closing the window, which calls App.stop(), which calls GameEngine.stop()
-                if(task != null) 
-                {
-                    task.cancel(true);
-                    robotFutures.remove(id);
-                }                
-            }
-        }             
-
+        // Interrupts all Robot threads
         robotExecutorService.shutdownNow();
 
         robotSpawnConsumerThread.interrupt();
@@ -206,9 +204,6 @@ public class GameEngine implements ArenaListener
         scoreThread.interrupt();
     }
  
-    
-
-
     
     /*
      * Returns a runnable containing the logic for the robot spawn consumer.
@@ -400,9 +395,12 @@ public class GameEngine implements ArenaListener
 
 
 
-    // Adds a new robot to the blocking queue, for consumption by the robot-spawn-consumer 
-    // thread.
-    // Thread: Runs in the calling thread (usually the Robot-Spawn-Producer)
+    /*
+     * Adds a new robot to the blocking queue, for consumption by the robot-spawn-consumer 
+     * thread.
+     * 
+     * Thread: Runs in the calling thread (usually the Robot-Spawn-Producer) 
+     */
     public void putNewRobot(Robot robot) throws InterruptedException
     {
         this.robotSpawnBlockingQueue.put(robot);
