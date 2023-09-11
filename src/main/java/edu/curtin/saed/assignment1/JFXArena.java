@@ -161,6 +161,9 @@ public class JFXArena extends Pane
         List<ReadOnlyFortressWall> walls = gameEngine.getPlacedWalls();
         Vector2d citadelPos = gameEngine.getCitadel();
 
+        // Draw Citadel
+        drawImage( gfx, citadelImage, citadelPos.x(), citadelPos.y() );
+
         //Draw all walls
         for(ReadOnlyFortressWall w : walls)
         {
@@ -185,8 +188,7 @@ public class JFXArena extends Pane
             drawLabel( gfx, label, r.getCoordinates().x(), r.getCoordinates().y() );
         }
 
-        // Draw Citadel
-        drawImage( gfx, citadelImage, citadelPos.x(), citadelPos.y() );
+        
 
     }
     
