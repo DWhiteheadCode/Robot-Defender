@@ -9,7 +9,7 @@ public class FortressWall
     public static final String DAMAGED_IMAGE_FILE = "181479.png";
 
     private Vector2d coordinates;
-    private boolean isDamaged;
+    private boolean isDamaged; // Not locked because GameEngine prevents multiple robots from colliding with the wall at the same time.               
 
     private GameEngine gameEngine;
 
