@@ -60,7 +60,8 @@ public class GameEngine implements ArenaListener
     private final int numCols; // Can't be modified, so don't need to be locked
 
     // MUTEXES
-    private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables
+    private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables, unless otherwise specified
+    private Object robotFuturesMutex = new Object(); // Used to lockj robotFutures
    
 
     //CONSTRUCTOR
@@ -123,11 +124,11 @@ public class GameEngine implements ArenaListener
         //Initialise array
         this.gridSquares = new Location[numRows][numCols];
 
-        for(int i = 0; i < numRows; i++)
+        for(int i = 0; i < numCols; i++)
         {
-            for(int j = 0; j < numCols; j++)
+            for(int j = 0; j < numRows; j++)
             {
-                this.gridSquares[i][j] = new Location( new Vector2d(j, i) );
+                this.gridSquares[i][j] = new Location( new Vector2d(i, j) );
             }
         }
 
@@ -239,23 +240,24 @@ public class GameEngine implements ArenaListener
                 while(true)
                 {
                     Robot nextRobot = robotSpawnBlockingQueue.take();
+                    
+                    boolean startRobot = true; // Set to false if the robot spawns on a wall and is immediately destroyed
 
                     synchronized(gameStateMutex)
                     {
                         List<Location> unoccupiedCorners;
 
+                        //Get the Locations of the 4 corners of the map
+                        Location[] corners = new Location[4];
+                        
+                        corners[0] = gridSquares[0][0];  // Top left
+                        corners[1] = gridSquares[numRows - 1][0]; // Bottom left
+                        corners[2] = gridSquares[numRows - 1][numCols - 1]; //Bottom right
+                        corners[3] = gridSquares[0][numCols - 1];  // Top right
+
                         // Wait until there is at least 1 free corner
                         do
                         {
-                            //Get the Locations of the 4 corners of the map
-                            Location[] corners = new Location[4];
-                            
-                            corners[0] = gridSquares[0][0];  // Top left
-                            corners[1] = gridSquares[numRows - 1][0]; // Bottom left
-                            corners[2] = gridSquares[numRows - 1][numCols - 1]; //Bottom right
-                            corners[3] = gridSquares[0][numCols - 1];  // Top right
-                            
-
                             // Add corner Locations that are unoccupied by other robots to a list
                             unoccupiedCorners = new ArrayList<>();
                             for(Location l : corners)
@@ -285,12 +287,10 @@ public class GameEngine implements ArenaListener
                             spawnLocationIdx = rand.nextInt( 0, unoccupiedCorners.size() ); 
                         }
 
-                        Location spawnLocation = unoccupiedCorners.get(spawnLocationIdx);
-
                         // Tell the corner that it is occupied, and tell the robot its coordinates
+                        Location spawnLocation = unoccupiedCorners.get(spawnLocationIdx);                        
                         spawnLocation.setRobot(nextRobot);
                         nextRobot.setCoordinates( spawnLocation.getCoordinates() );                        
-
 
                         // Add the robot to the map of all robots
                         robots.put(nextRobot.getId(), nextRobot);
@@ -298,27 +298,32 @@ public class GameEngine implements ArenaListener
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
                                                
-                        //Start the robot, and store a reference to its execution in the map (so it can be interrupted later)
-                        Future<?> f = robotExecutorService.submit(nextRobot);
-                        robotFutures.put( nextRobot.getId(), f );
                         
-
-                        // If there is a wall on the spawn point, damage it
+                        // If there is a wall on the spawn point, damage it. 
                         FortressWall wallOnSpawnPoint = spawnLocation.getWall();
                         if(wallOnSpawnPoint != null)
                         {
-                            robotHitWall(nextRobot);
-                            wallOnSpawnPoint.damage();
+                            startRobot = false;
+                            robotHitWall(nextRobot, wallOnSpawnPoint);
                         }
-
 
                         // Redraw JFXArena UI element, and log robot spawn on screen
                         Platform.runLater( () -> {
                             app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
-                        } );
+                        } );              
+                    }   
+                    
+                    //Start the robot, and store a reference to its execution in the map (so it can be interrupted later)
+                    synchronized(robotFuturesMutex)
+                    {         
+                        if(startRobot)
+                        {
+                            Future<?> f = robotExecutorService.submit(nextRobot);
+                            robotFutures.put( nextRobot.getId(), f );
+                        }                   
+                    }
 
-                        updateArenaUi();                        
-                    }                    
+                    updateArenaUi(); 
                 }  
             }
             catch(InterruptedException iE)
@@ -508,8 +513,7 @@ public class GameEngine implements ArenaListener
             FortressWall wall = endLocation.getWall();
             if( wall != null)
             {
-                robotHitWall(robot);
-                wall.damage();
+                robotHitWall(robot, wall);
             }
 
             // Check for game over
@@ -551,16 +555,21 @@ public class GameEngine implements ArenaListener
      */
     private void destroyRobot(Robot robot)
     {
-        synchronized(gameStateMutex)
-        {
-            int id = robot.getId();
+        int id = robot.getId();
 
+        synchronized(robotFuturesMutex)
+        {
             // Interrupt the robot's task, and remove it from the map of Futures
             Future<?> future = robotFutures.get(id);
-            future.cancel(true);
+            if(future != null) // May be null if robot spawned on a wall
+            {
+                future.cancel(true);
+                robotFutures.remove(id);
+            }            
+        }
 
-            robotFutures.remove(id);
-
+        synchronized(gameStateMutex)
+        {
             // Remove the robot from its location
             int x = (int)robot.getCoordinates().x(); // Ignores fractional part of coordinate. Shouldn't matter if called appropriately
             int y = (int)robot.getCoordinates().y(); // Same as above
@@ -583,7 +592,7 @@ public class GameEngine implements ArenaListener
      * Thread: Called by the robot's thread from GameEngine.moveComplete(), or by the robot-spawn-consumer thread
      * if the robot spawned on a wall
      */
-    private void robotHitWall(Robot robot)
+    private void robotHitWall(Robot robot, FortressWall wall)
     {
         synchronized(gameStateMutex)
         {
@@ -596,6 +605,9 @@ public class GameEngine implements ArenaListener
             // Increase the score
             score.robotDestroyed();
 
+            wall.damage();
+            destroyRobot(robot);
+
             // Show log message on screen
             String msg = "Robot '" + id + "' hit a wall at (" + x + ", " + y + ")\n";
             Platform.runLater(() -> {
@@ -603,7 +615,7 @@ public class GameEngine implements ArenaListener
             });
         }
 
-        destroyRobot(robot);
+        
     }
 
     /*
