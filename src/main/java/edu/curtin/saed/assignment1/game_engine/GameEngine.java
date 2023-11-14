@@ -297,6 +297,13 @@ public class GameEngine implements ArenaListener
 
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
+
+                        // Redraw JFXArena UI element, and log robot spawn on screen
+                        Platform.runLater( () -> {
+                            app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
+                        } );      
+
+                        
                                                
                         
                         // If there is a wall on the spawn point, damage it. 
@@ -307,10 +314,7 @@ public class GameEngine implements ArenaListener
                             robotHitWall(nextRobot, wallOnSpawnPoint);
                         }
 
-                        // Redraw JFXArena UI element, and log robot spawn on screen
-                        Platform.runLater( () -> {
-                            app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
-                        } );              
+                                
                     }   
                     
                     //Start the robot, and store a reference to its execution in the map (so it can be interrupted later)
