@@ -1,11 +1,13 @@
 package dwhiteheadcode.com.github.robot_defender.game_engine;
 
+import java.time.Duration;
+
 /*
  * Class used to keep track of the player's score.
  */
 public class ScoreCalculator implements Runnable
 {
-    private static final int PASSIVE_SCORE_DELAY_MILLISECONDS = 1000; // 1 second
+    private static final Duration PASSIVE_SCORE_DELAY = Duration.ofSeconds(1); 
     private static final int PASSIVE_SCORE_INCREMENT = 10;
     private static final int ROBOT_DESTROYED_SCORE = 100;
 
@@ -38,7 +40,7 @@ public class ScoreCalculator implements Runnable
                     gameEngine.updateScore(score);
                 }
 
-                Thread.sleep(PASSIVE_SCORE_DELAY_MILLISECONDS);
+                Thread.sleep(PASSIVE_SCORE_DELAY.toMillis());
             }
         }
         catch(InterruptedException iE)

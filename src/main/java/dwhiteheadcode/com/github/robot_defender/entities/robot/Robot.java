@@ -3,6 +3,7 @@ package dwhiteheadcode.com.github.robot_defender.entities.robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.time.Duration;
 
 import dwhiteheadcode.com.github.robot_defender.entities.robot.moves.*;
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
@@ -12,14 +13,14 @@ public class Robot implements Runnable
 {
     public static final String IMAGE_FILE = "1554047213.png";
 
-    private static final int MIN_MOVE_DELAY_MILLISECONDS = 500;
-    private static final int MAX_MOVE_DELAY_MILLISECONDS = 2000;
+    private static final Duration MIN_MOVE_DELAY = Duration.ofMillis(500);
+    private static final Duration MAX_MOVE_DELAY = Duration.ofMillis(2000);
     
-    private static final int MOVE_DURATION_MILLISECONDS = 400;
-    private static final int MOVE_ANIMATION_INTERVAL_MILLISECONDS = 40;
+    private static final Duration MOVE_DURATION = Duration.ofMillis(400);
+    private static final Duration MOVE_ANIMATION_INTERVAL = Duration.ofMillis(40); // Amount of time between each frame
 
     private final int id;
-    private final long moveDelayMilliseconds;
+    private final Duration moveDelay;
     private GameEngine gameEngine;
     private Vector2d coordinates;
     
@@ -31,10 +32,12 @@ public class Robot implements Runnable
 
         // Generate a random moveDelay between MIN and MAX move delays (inclusive)
         Random rand = new Random();
-        this.moveDelayMilliseconds = rand.nextLong(
-            MIN_MOVE_DELAY_MILLISECONDS,
-            (MAX_MOVE_DELAY_MILLISECONDS + 1)
+        long moveDelayMilliseconds = rand.nextLong(
+            MIN_MOVE_DELAY.toMillis(),
+            (MAX_MOVE_DELAY.toMillis() + 1)
         );
+
+        this.moveDelay = Duration.ofMillis(moveDelayMilliseconds);
         
         this.gameEngine = gameEngine;
         this.coordinates = null; // Coordinates must be set when the Robot is placed into the map by the gameEngine
@@ -66,7 +69,7 @@ public class Robot implements Runnable
         {
             while(true)
             {       
-                Thread.sleep(this.moveDelayMilliseconds);
+                Thread.sleep(this.moveDelay.toMillis());
                 
                 Vector2d citadelPos = gameEngine.getCitadel();
 
@@ -144,7 +147,7 @@ public class Robot implements Runnable
      */
     private void makeMove(Move move) throws InterruptedException
     {
-        int numIntervals = MOVE_DURATION_MILLISECONDS / MOVE_ANIMATION_INTERVAL_MILLISECONDS;
+        long numIntervals = MOVE_DURATION.toMillis() / MOVE_ANIMATION_INTERVAL.toMillis();
         
         Vector2d intervalMoveVec = move.getMoveVec().divide(numIntervals); // The vector the robot should be moved by each interval
 
@@ -155,7 +158,7 @@ public class Robot implements Runnable
 
             gameEngine.updateRobotPos(this, newPos);
 
-            Thread.sleep(MOVE_ANIMATION_INTERVAL_MILLISECONDS);
+            Thread.sleep(MOVE_ANIMATION_INTERVAL.toMillis());
         }
 
         // Correct any floating point issues, with one final position update

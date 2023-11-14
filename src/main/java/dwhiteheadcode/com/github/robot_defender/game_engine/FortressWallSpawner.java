@@ -2,6 +2,7 @@ package dwhiteheadcode.com.github.robot_defender.game_engine;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.time.Duration;
 
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.FortressWall;
 import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
@@ -11,7 +12,7 @@ import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
  */
 public class FortressWallSpawner implements Runnable
 {
-    private static final int WALL_SPAWN_DELAY_MILLISECONDS = 2000; // The delay after building 1 wall before the next can be built
+    private static final Duration WALL_SPAWN_DELAY = Duration.ofMillis(2000); // The delay after building 1 wall before the next can be built
     private static final int MAX_NUM_WALLS = 10;
 
     private BlockingQueue<FortressWall> wallRequestBlockingQueue = new ArrayBlockingQueue<>(MAX_NUM_WALLS);
@@ -40,7 +41,7 @@ public class FortressWallSpawner implements Runnable
                 
                 gameEngine.putNewWall( request );
 
-                Thread.sleep(WALL_SPAWN_DELAY_MILLISECONDS);
+                Thread.sleep(WALL_SPAWN_DELAY.toMillis());
             }
         }
         catch(InterruptedException iE)

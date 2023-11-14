@@ -1,5 +1,7 @@
 package dwhiteheadcode.com.github.robot_defender.game_engine;
 
+import java.time.Duration;
+
 import dwhiteheadcode.com.github.robot_defender.entities.robot.Robot;
 
 /*
@@ -7,7 +9,7 @@ import dwhiteheadcode.com.github.robot_defender.entities.robot.Robot;
  */
 public class RobotSpawner implements Runnable
 {
-    private static final long ROBOT_SPAWN_DELAY_MILLISECONDS = 1500;
+    private static final Duration ROBOT_SPAWN_DELAY = Duration.ofMillis(1500);
     
     private GameEngine gameEngine;
     private int robotCount = 0; // Tracks the number of robots created by this spawner. Used for robot.id
@@ -29,7 +31,7 @@ public class RobotSpawner implements Runnable
         {
             while(true)
             {
-                Thread.sleep(ROBOT_SPAWN_DELAY_MILLISECONDS);
+                Thread.sleep(ROBOT_SPAWN_DELAY.toMillis());
 
                 this.robotCount++;
                 Robot robot = new Robot(robotCount, gameEngine);
