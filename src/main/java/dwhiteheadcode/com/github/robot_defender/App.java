@@ -64,7 +64,7 @@ public class App extends Application
     }
 
     /*
-     * Called when the window is closed
+     * Stops the gameengine when the game window is closed.
      */
     @Override
     public void stop() 
@@ -77,22 +77,38 @@ public class App extends Application
         return this.arena;
     }
 
+    /*
+     * Display a message in the on-screen log.
+     * Must be called from UI thread.
+     */
     public void log(String message)
     {
         logger.appendText(message);
     }
 
+    /*
+     * Update the score on screen.
+     * Must be called from UI thread.
+     */
     public void setScore(int score)
     {
         this.scoreLabel.setText("Score: " + score);
     }
 
+    /*
+     * Trigger end-of-game logic.
+     * Must be called from UI thread
+     */
     public void gameOver(int finalScore)
     {
         this.scoreLabel.setText("GAME OVER! Final Score: " + finalScore);
         gameEngine.stop();
     }
 
+    /*
+     * Update the on-screen text displaying the number of queue walls.
+     * Must be called from UI thread.
+     */
     public void setQueuedWalls(int numWalls)
     {
         this.queuedWallsLabel.setText("Queued Walls: " + numWalls);
