@@ -1,6 +1,6 @@
-package edu.curtin.saed.assignment1.entities.fortress_wall;
+package dwhiteheadcode.com.github.robot_defender.entities.fortress_wall;
 
-import edu.curtin.saed.assignment1.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 /*
  * Represents a read-only version of a FortressWall, which is useful to prevent

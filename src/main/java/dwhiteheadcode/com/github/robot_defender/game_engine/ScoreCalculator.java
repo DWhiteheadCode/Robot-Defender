@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine;
 
 /*
  * Class used to keep track of the player's score.

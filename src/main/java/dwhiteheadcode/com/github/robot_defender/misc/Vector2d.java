@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.misc;
+package dwhiteheadcode.com.github.robot_defender.misc;
 
 /*
  * Represents a 2d vector with double (real) x and y components

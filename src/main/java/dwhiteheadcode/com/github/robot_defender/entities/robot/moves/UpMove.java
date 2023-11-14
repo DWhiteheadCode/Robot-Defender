@@ -1,6 +1,6 @@
-package edu.curtin.saed.assignment1.entities.robot.moves;
+package dwhiteheadcode.com.github.robot_defender.entities.robot.moves;
 
-import edu.curtin.saed.assignment1.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 public class UpMove implements Move
 {

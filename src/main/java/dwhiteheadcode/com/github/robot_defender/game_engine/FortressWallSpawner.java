@@ -1,10 +1,10 @@
-package edu.curtin.saed.assignment1.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
-import edu.curtin.saed.assignment1.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.FortressWall;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 /*
  * A class for spawning FortressWalls, for use by a GameEngine.

@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1;
+package dwhiteheadcode.com.github.robot_defender;
 
 import javafx.scene.canvas.*;
 import javafx.geometry.VPos;
@@ -10,10 +10,10 @@ import javafx.scene.text.TextAlignment;
 import java.io.*;
 import java.util.*;
 
-import edu.curtin.saed.assignment1.entities.robot.*;
-import edu.curtin.saed.assignment1.game_engine.GameEngine;
-import edu.curtin.saed.assignment1.misc.Vector2d;
-import edu.curtin.saed.assignment1.entities.fortress_wall.*;
+import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
+import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 
 
 /**

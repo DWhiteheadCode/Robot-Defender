@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1;
+package dwhiteheadcode.com.github.robot_defender;
 
 /**
  * Represents an event handler for when the arena is clicked.

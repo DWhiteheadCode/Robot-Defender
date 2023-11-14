@@ -1,6 +1,6 @@
-package edu.curtin.saed.assignment1.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine;
 
-import edu.curtin.saed.assignment1.entities.robot.Robot;
+import dwhiteheadcode.com.github.robot_defender.entities.robot.Robot;
 
 /*
  * A class that produces Robots, and gives them to GameEngine for use in the game. 

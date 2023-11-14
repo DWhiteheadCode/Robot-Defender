@@ -19,7 +19,7 @@ javafx {
 }
 
 application {
-    mainClass = 'edu.curtin.saed.assignment1.App'
+    mainClass = 'dwhiteheadcode.com.github.robot_defender.App'
 }
 
 pmd {

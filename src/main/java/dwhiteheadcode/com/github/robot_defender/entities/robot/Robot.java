@@ -1,12 +1,12 @@
-package edu.curtin.saed.assignment1.entities.robot;
+package dwhiteheadcode.com.github.robot_defender.entities.robot;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import edu.curtin.saed.assignment1.entities.robot.moves.*;
-import edu.curtin.saed.assignment1.game_engine.GameEngine;
-import edu.curtin.saed.assignment1.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.entities.robot.moves.*;
+import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 public class Robot implements Runnable
 {

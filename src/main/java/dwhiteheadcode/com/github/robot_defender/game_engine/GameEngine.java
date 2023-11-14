@@ -1,4 +1,4 @@
-package edu.curtin.saed.assignment1.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,13 +14,13 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import edu.curtin.saed.assignment1.entities.robot.*;
-import edu.curtin.saed.assignment1.App;
-import edu.curtin.saed.assignment1.ArenaListener;
-import edu.curtin.saed.assignment1.JFXArena;
-import edu.curtin.saed.assignment1.entities.fortress_wall.*;
-import edu.curtin.saed.assignment1.misc.Vector2d;
-import edu.curtin.saed.assignment1.misc.Location;
+import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
+import dwhiteheadcode.com.github.robot_defender.App;
+import dwhiteheadcode.com.github.robot_defender.ArenaListener;
+import dwhiteheadcode.com.github.robot_defender.JFXArena;
+import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
+import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
+import dwhiteheadcode.com.github.robot_defender.misc.Location;
 import javafx.application.Platform;
 
 public class GameEngine implements ArenaListener

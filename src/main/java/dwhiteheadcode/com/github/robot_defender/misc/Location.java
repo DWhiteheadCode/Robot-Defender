@@ -1,7 +1,7 @@
-package edu.curtin.saed.assignment1.misc;
+package dwhiteheadcode.com.github.robot_defender.misc;
 
-import edu.curtin.saed.assignment1.entities.fortress_wall.FortressWall;
-import edu.curtin.saed.assignment1.entities.robot.Robot;
+import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.FortressWall;
+import dwhiteheadcode.com.github.robot_defender.entities.robot.Robot;
 
 /*
  * Represents a location on the game board (i.e. a square in the grid) 
