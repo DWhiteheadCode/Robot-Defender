@@ -13,6 +13,7 @@ public class Robot implements Runnable
 {
     public static final String IMAGE_FILE = "1554047213.png";
 
+    // Each robot's move delay (delay between moves) is chosen at random between these min/max values (inclusive)
     private static final Duration MIN_MOVE_DELAY = Duration.ofMillis(500);
     private static final Duration MAX_MOVE_DELAY = Duration.ofMillis(2000);
     
@@ -20,11 +21,11 @@ public class Robot implements Runnable
     private static final Duration MOVE_ANIMATION_INTERVAL = Duration.ofMillis(40); // Amount of time between each frame
 
     private final int id;
-    private final Duration moveDelay;
+    private final Duration moveDelay; // The actual move delay of this robot
     private GameEngine gameEngine;
     private Vector2d coordinates;
     
-    private RobotMoveCallback moveCallback;
+    private RobotMoveCallback moveCallback; // Used for the robot to tell the GameEngine that a move was completed
 
     public Robot(int id, GameEngine gameEngine)
     {
