@@ -5,8 +5,8 @@ import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 public class FortressWall 
 {
-    public static final String UNDAMAGED_IMAGE_FILE = "181478.png";
-    public static final String DAMAGED_IMAGE_FILE = "181479.png";
+    public static final String UNDAMAGED_IMAGE_FILE = "wall_default.png";
+    public static final String DAMAGED_IMAGE_FILE = "wall_damaged.png";
 
     private Vector2d coordinates;
     private boolean isDamaged; // Not locked because GameEngine prevents multiple robots from colliding with the wall at the same time.               
