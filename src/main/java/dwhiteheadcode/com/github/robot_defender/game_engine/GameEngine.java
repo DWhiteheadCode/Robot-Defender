@@ -446,7 +446,7 @@ public class GameEngine implements ArenaListener
         int endX = (int)endPos.x(); // Same as above
         int endY = (int)endPos.y(); // Same as above
 
-        // Out of bounds
+        // Discard moves that would put the robot out of bounds
         if(endX < 0 || endX >= numCols || endY < 0 || endY >= numRows)
         {
             return false;
@@ -462,8 +462,7 @@ public class GameEngine implements ArenaListener
                 return false;
             }
 
-            //Move is valid ----
-
+            // Move is valid below this point -------
             // Occupy the end location
             endLocation.setRobot(robot);
 

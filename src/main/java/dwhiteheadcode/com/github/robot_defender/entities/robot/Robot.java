@@ -190,10 +190,21 @@ public class Robot implements Runnable
     {
         List<Move> moves = new ArrayList<>();
 
-        moves.add(new UpMove( getCoordinates(), citadelPos ));
-        moves.add(new DownMove(getCoordinates(), citadelPos));
-        moves.add(new LeftMove(getCoordinates(), citadelPos));
-        moves.add(new RightMove(getCoordinates(), citadelPos));
+        //UP
+        Vector2d upVec = new Vector2d(0, -1);
+        moves.add(new Move(upVec, this.getCoordinates(), citadelPos));
+
+        //DOWN
+        Vector2d downVec = new Vector2d(0, 1);
+        moves.add(new Move(downVec, this.getCoordinates(), citadelPos));
+
+        //LEFT
+        Vector2d leftVec = new Vector2d(-1, 0);
+        moves.add(new Move(leftVec, this.getCoordinates(), citadelPos));
+
+        //RIGHT
+        Vector2d rightVec = new Vector2d(1, 0);
+        moves.add(new Move(rightVec, this.getCoordinates(), citadelPos));
 
         return moves;
     }
