@@ -24,7 +24,7 @@ public class App extends Application
     @Override
     public void start(Stage stage) 
     {
-        stage.setTitle("20232430 - Assignment 1 Submission");       
+        stage.setTitle("Robot Defender");       
         
         int numRows = 9;
         int numCols = 9;
