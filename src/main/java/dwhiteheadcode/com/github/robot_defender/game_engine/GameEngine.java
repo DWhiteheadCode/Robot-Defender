@@ -48,8 +48,8 @@ public class GameEngine implements ArenaListener
 
     // GAME STATE INFO - Considered to be one resource. Locked with gameStateMutex; unless otherwise specified
     private Location[][] gridSquares;
-    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // A map of all robot TASKS (futures). Robot ID is used as key
-    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>()); // A map of all active robots. Robot ID is used as key
+    private Map<Integer, Future<?>> robotFutures = new HashMap<>(); // A map of all robot TASKS (futures). Robot ID is used as key. Locked with robotFuturesMutex (and not gameStateMutex).
+    private Map<Integer, Robot> robots = new HashMap<>(); // A map of all active robots. Robot ID is used as key
     private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); // A list of all active walls
 
     private ScoreCalculator score; // Handles its own locking
@@ -61,7 +61,7 @@ public class GameEngine implements ArenaListener
 
     // MUTEXES
     private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables, unless otherwise specified
-    private Object robotFuturesMutex = new Object(); // Used to lockj robotFutures
+    private Object robotFuturesMutex = new Object(); // Used to lock robotFutures
    
 
     //CONSTRUCTOR
@@ -736,7 +736,10 @@ public class GameEngine implements ArenaListener
      */
     public int getNumSpawnedWalls()
     {
-        return wallSpawnBlockingQueue.size() + placedWalls.size();
+        synchronized(gameStateMutex)
+        {
+            return wallSpawnBlockingQueue.size() + placedWalls.size();
+        }
     }
 
     /*
