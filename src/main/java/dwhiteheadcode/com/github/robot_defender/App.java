@@ -14,6 +14,8 @@ public class App extends Application
     private TextArea logger;
     private Label scoreLabel;
     private Label queuedWallsLabel;
+    private Label wallCooldownLabel;
+    private Label availableWallsLabel;
     private GameEngine gameEngine;
 
     public static void main(String[] args) 
@@ -45,7 +47,9 @@ public class App extends Application
         ToolBar toolbar = new ToolBar();
         scoreLabel = new Label("Score: 0");
         queuedWallsLabel = new Label("Queued Walls: 0");
-        toolbar.getItems().addAll(scoreLabel, queuedWallsLabel);
+        availableWallsLabel = new Label("Available Walls: " + gameEngine.getMaxWalls());
+        wallCooldownLabel = new Label("Wall Placement Cooldown: READY");
+        toolbar.getItems().addAll(scoreLabel, queuedWallsLabel, availableWallsLabel, wallCooldownLabel);
                     
         this.logger = new TextArea();
         
@@ -112,6 +116,32 @@ public class App extends Application
     public void setQueuedWalls(int numWalls)
     {
         this.queuedWallsLabel.setText("Queued Walls: " + numWalls);
+    }
+
+    /*
+     * Update the on-screen text displaying the cooldown before the next wall can/will be placed
+     * Must be called from UI thread.
+     */
+    public void setWallCooldown(double cooldownSeconds)
+    {
+        if(cooldownSeconds == 0d)
+        {
+            this.wallCooldownLabel.setText("Wall Cooldown: READY");
+        }
+        else
+        {
+            this.wallCooldownLabel.setText("Wall Cooldown: " + cooldownSeconds + "s");
+        }
+    }
+
+    /*
+     * Update the on-screen text displaying the number of walls that can still be placed.
+     * Does not count queued walls.
+     * Must be called from UI thread.
+     */
+    public void setAvailableWalls(int availableWalls)
+    {
+        this.availableWallsLabel.setText("Available Walls: " + availableWalls);
     }
 
 }

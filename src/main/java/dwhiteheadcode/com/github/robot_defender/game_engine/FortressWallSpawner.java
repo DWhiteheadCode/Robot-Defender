@@ -75,6 +75,7 @@ public class FortressWallSpawner implements Runnable
             Vector2d coordinates = new Vector2d(x, y);
 
             wallRequestBlockingQueue.offer(new FortressWall(gameEngine, coordinates));
+            gameEngine.updateAvailableWallsText();
         }        
     }
 
@@ -83,6 +84,11 @@ public class FortressWallSpawner implements Runnable
     public int queueSize()
     {
         return wallRequestBlockingQueue.size();
+    }
+
+    public int maxWalls()
+    {
+        return MAX_NUM_WALLS;
     }
     
 }

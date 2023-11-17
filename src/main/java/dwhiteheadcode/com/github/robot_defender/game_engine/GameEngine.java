@@ -364,7 +364,8 @@ public class GameEngine implements ArenaListener
                     FortressWall newWall = wallSpawnBlockingQueue.take();
 
                     updateQueuedWallsText();
-
+                    updateAvailableWallsText();
+                    
                     Vector2d wallPos = newWall.getCoordinates();
 
                     int wallX = (int)wallPos.x(); // Note: Disregards fractional position. Shouldn't matter if called appropriately
@@ -393,6 +394,8 @@ public class GameEngine implements ArenaListener
                         }                   
                     }
 
+                    updateQueuedWallsText();
+                    updateAvailableWallsText();
                     updateArenaUi();
                 }
             }
@@ -644,6 +647,7 @@ public class GameEngine implements ArenaListener
         }
 
         updateArenaUi();
+        updateAvailableWallsText();
     }
 
 
@@ -743,6 +747,36 @@ public class GameEngine implements ArenaListener
     }
 
     /*
+     * Returns the number of walls that have either been placed, or are queued to be placed.
+     * 
+     * Thread: WallSpawnConsumer, Robot, UI
+     */
+    public int getAllWallsCount()
+    {
+        synchronized(gameStateMutex)
+        {
+            return wallSpawnBlockingQueue.size() + placedWalls.size() + wallSpawner.queueSize();
+        }
+    }
+
+    /*
+     * Calculates the number of available walls, and update the UI.
+     * 
+     * NOTE: If wall A is queued such that it will replace a damaged wall (wall B), both A and B will be
+     *       counted as walls (thus 2 will be subtracted from the number of available walls) until wall A 
+     *       is placed, which actually destroys wall B.
+     */
+    public void updateAvailableWallsText()
+    {
+        int availableWalls = wallSpawner.maxWalls() - getAllWallsCount();
+        
+        Platform.runLater(()->
+        {
+            app.setAvailableWalls(availableWalls);
+        });
+    }
+
+    /*
      * Add a new wall to the wallSpawnBlockingQueue, for consumption by wall-spawn-consumer
      * 
      * Thread: Wall-spawn-producer
@@ -772,6 +806,11 @@ public class GameEngine implements ArenaListener
     public void updateScore(int score)
     {
         Platform.runLater( () -> {app.setScore(score);});
+    }
+
+    public int getMaxWalls()
+    {
+        return wallSpawner.maxWalls();
     }
 
 }
