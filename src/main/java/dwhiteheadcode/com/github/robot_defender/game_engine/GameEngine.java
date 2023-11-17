@@ -14,14 +14,13 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
-import dwhiteheadcode.com.github.robot_defender.App;
-import dwhiteheadcode.com.github.robot_defender.ArenaListener;
-import dwhiteheadcode.com.github.robot_defender.JFXArena;
-import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
-import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
-import dwhiteheadcode.com.github.robot_defender.misc.Location;
 import javafx.application.Platform;
+
+import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
+import dwhiteheadcode.com.github.robot_defender.*;
+import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
+import dwhiteheadcode.com.github.robot_defender.misc.*;
+
 
 public class GameEngine implements ArenaListener
 {
