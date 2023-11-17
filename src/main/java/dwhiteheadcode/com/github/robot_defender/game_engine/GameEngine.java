@@ -46,18 +46,18 @@ public class GameEngine implements ArenaListener
     private BlockingQueue<Robot> robotSpawnBlockingQueue = new ArrayBlockingQueue<>(5); // robot-spawn-producer -> robot-spawn-consumer
     private BlockingQueue<FortressWall> wallSpawnBlockingQueue = new ArrayBlockingQueue<>(10); // wall-spawn-producer -> wall-spawn-consumer
 
-    // GAME STATE INFO - Considered the same resource, and locked with gameStateMutex; unless otherwise specified
+    // GAME STATE INFO - Considered to be one resource. Locked with gameStateMutex; unless otherwise specified
     private Location[][] gridSquares;
-    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // A map of all robot TASKS (futures)
-    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>()); // A map of all active robots
+    private Map<Integer, Future<?>> robotFutures = Collections.synchronizedMap( new HashMap<>() ); // A map of all robot TASKS (futures). Robot ID is used as key
+    private Map<Integer, Robot> robots = Collections.synchronizedMap(new HashMap<>()); // A map of all active robots. Robot ID is used as key
     private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); // A list of all active walls
 
     private ScoreCalculator score; // Handles its own locking
 
-    private Vector2d citadel; // Is never modified after construction, so does not need to be locked
+    private final Vector2d citadel; // Can't be modified, so doesn't need to be locked
 
-    private final int numRows; // Can't be modified, so don't need to be locked
-    private final int numCols; // Can't be modified, so don't need to be locked
+    private final int numRows; // Can't be modified, so doesn't need to be locked
+    private final int numCols; // Can't be modified, so doesn't need to be locked
 
     // MUTEXES
     private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables, unless otherwise specified
@@ -94,6 +94,12 @@ public class GameEngine implements ArenaListener
         );
 
         initGridSquares(numRows, numCols);
+
+        //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, favour col right of middle.
+        int middleRow = (numRows / 2);
+        int middleCol = (numCols / 2);
+        this.gridSquares[middleRow][middleCol].setCitadel(true);
+        this.citadel = new Vector2d(middleCol, middleRow);
     }
 
     public void setArena(JFXArena arena)
@@ -108,9 +114,8 @@ public class GameEngine implements ArenaListener
 
     /*
      * Initialises the array and elements that make up the grid.
-     * Sets the citadel in the middle of the grid. 
      * 
-     * Thread: Runs in the thread that called Constructor (UI thread from App). 
+     * Thread: Runs in the thread that called GameEngine constructor (i.e. UI thread from App). 
      *         Doesn't need synchronize, as start() can't have been called prior, 
      *         so only this thread is accessing resources
      */
@@ -131,14 +136,6 @@ public class GameEngine implements ArenaListener
                 this.gridSquares[i][j] = new Location( new Vector2d(i, j) );
             }
         }
-
-        //Set the citadel in the middle square. If even rows, favour row under middle; if even cols, favour col right of middle.
-        int middleRow = (numRows / 2);
-        int middleCol = (numCols / 2);
-
-        this.gridSquares[middleRow][middleCol].setCitadel(true);
-
-        this.citadel = new Vector2d(middleCol, middleRow);
     }
 
     /*
