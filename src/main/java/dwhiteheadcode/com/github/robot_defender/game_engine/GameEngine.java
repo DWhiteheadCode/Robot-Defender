@@ -69,12 +69,12 @@ public class GameEngine implements ArenaListener
     {
         if(numRows < 3)
         {
-            throw new IllegalStateException("GameEngine only supports grids with at least 3 rows.");
+            throw new IllegalArgumentException("GameEngine only supports grids with at least 3 rows.");
         }
 
         if(numCols < 3)
         {
-            throw new IllegalStateException("GameEngine only supports grids with at least 3 cols.");
+            throw new IllegalArgumentException("GameEngine only supports grids with at least 3 cols.");
         }
 
         this.app = app;
