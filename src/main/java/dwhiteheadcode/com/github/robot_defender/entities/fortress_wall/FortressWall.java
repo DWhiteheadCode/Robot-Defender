@@ -1,10 +1,7 @@
 package dwhiteheadcode.com.github.robot_defender.entities.fortress_wall;
 
-import javafx.application.Platform;
 import javafx.scene.media.*;
-import javafx.util.Duration;
-import java.io.File;
-import java.io.IOException;
+
 import java.net.URL;
 
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
