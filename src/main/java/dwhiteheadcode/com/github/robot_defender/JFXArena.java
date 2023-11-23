@@ -29,7 +29,7 @@ public class JFXArena extends Pane
     private Image damagedFortressWallImage;
     private Image citadelImage;
     
-    private static final String CITADEL_IMAGE_FILE = "citadel.png";
+    private static final String CITADEL_IMAGE_FILE = "images/citadel.png";
 
     // The following values are arbitrary, and you may need to modify them according to the 
     // requirements of your application.

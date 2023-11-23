@@ -1,14 +1,27 @@
 package dwhiteheadcode.com.github.robot_defender.entities.fortress_wall;
 
+import javafx.application.Platform;
+import javafx.scene.media.*;
+import javafx.util.Duration;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 public class FortressWall 
 {
-    public static final String UNDAMAGED_IMAGE_FILE = "wall_default.png";
-    public static final String DAMAGED_IMAGE_FILE = "wall_damaged.png";
+    public static final String UNDAMAGED_IMAGE_FILE = "images/wall_default.png";
+    public static final String DAMAGED_IMAGE_FILE = "images/wall_damaged.png";
 
-    private Vector2d coordinates;
+    public static final String COLLISION_SOUND_FILE = "sounds/wall_collision.wav";
+    public static final String DESTRUCTION_SOUND_FILE = "sounds/wall_destruction.wav";
+    
+    private MediaPlayer collisionSoundPlayer;
+    private MediaPlayer destructionSoundPlayer;
+
+    private final Vector2d coordinates;
     private boolean isDamaged; // Not locked because GameEngine prevents multiple robots from colliding with the wall at the same time.               
 
     private GameEngine gameEngine;
@@ -18,7 +31,25 @@ public class FortressWall
         this.gameEngine = gameEngine;
         this.isDamaged = false;
         this.coordinates = coordinates;
+
+        loadSounds();
     }
+
+    private void loadSounds()
+    {
+        // Load Collision Sound
+        URL collisionSoundUri = getClass().getClassLoader().getResource(COLLISION_SOUND_FILE);
+        Media collisionSound = new Media(collisionSoundUri.toString());
+        this.collisionSoundPlayer = new MediaPlayer(collisionSound);
+        this.collisionSoundPlayer.setVolume(0.5);
+
+        // Load Destruction Sound
+        URL destructionSoundUri = getClass().getClassLoader().getResource(DESTRUCTION_SOUND_FILE);
+        Media destructionSound = new Media(destructionSoundUri.toString());
+        this.destructionSoundPlayer = new MediaPlayer(destructionSound);
+        this.destructionSoundPlayer.setVolume(0.1);
+    }
+
 
     /*
      * Returns a copy of this Wall's coordinates
@@ -52,15 +83,18 @@ public class FortressWall
      */
     public void damage()
     {
-        if(isDamaged)
+        if(isDamaged) // Destroy the wall
         {
+            this.destructionSoundPlayer.play();   
+
             gameEngine.destroyWall(this);
         }
-        else
+        else // Damage the wall
         {
+            this.collisionSoundPlayer.play();
+           
             this.isDamaged = true;
             gameEngine.updateArenaUi();
         }      
     }
-
 }

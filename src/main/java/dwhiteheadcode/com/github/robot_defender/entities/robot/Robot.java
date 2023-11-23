@@ -11,7 +11,7 @@ import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 public class Robot implements Runnable
 {
-    public static final String IMAGE_FILE = "robot.png";
+    public static final String IMAGE_FILE = "images/robot.png";
 
     // Each robot's move delay (delay between moves) is chosen at random between these min/max values (inclusive)
     private static final Duration MIN_MOVE_DELAY = Duration.ofMillis(500);
