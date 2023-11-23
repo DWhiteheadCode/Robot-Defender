@@ -122,14 +122,15 @@ public class App extends Application
      * Update the on-screen text displaying the cooldown before the next wall can/will be placed
      * Must be called from UI thread.
      */
-    public void setWallCooldown(double cooldownSeconds)
+    public void setWallCooldown(long cooldownMillis)
     {
-        if(cooldownSeconds == 0d)
+        if(cooldownMillis == 0l)
         {
             this.wallCooldownLabel.setText("Wall Cooldown: READY");
         }
         else
         {
+            double cooldownSeconds = (double)cooldownMillis / 1000;
             this.wallCooldownLabel.setText("Wall Cooldown: " + cooldownSeconds + "s");
         }
     }

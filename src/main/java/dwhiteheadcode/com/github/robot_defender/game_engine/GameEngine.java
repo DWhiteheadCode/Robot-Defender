@@ -812,4 +812,16 @@ public class GameEngine implements ArenaListener
         return wallSpawner.maxWalls();
     }
 
+    public void updateWallCooldown(long remainingCooldownMillis)
+    {
+        if(remainingCooldownMillis < 0)
+        {
+            throw new IllegalArgumentException("Wall spawn cooldown can't be less than 0.");
+        }
+
+        Platform.runLater(()-> {
+            app.setWallCooldown(remainingCooldownMillis);
+        });      
+    }
+
 }

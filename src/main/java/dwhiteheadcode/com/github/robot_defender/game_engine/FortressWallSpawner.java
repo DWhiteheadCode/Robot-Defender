@@ -13,6 +13,7 @@ import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 public class FortressWallSpawner implements Runnable
 {
     private static final Duration WALL_SPAWN_DELAY = Duration.ofMillis(2000); // The delay after building 1 wall before the next can be built
+    private static final Duration WALL_COOLDOWN_UPDATE_INTERVAL = Duration.ofMillis(100); // The amount of time to wait before updating UI about the cooldown
     private static final int MAX_NUM_WALLS = 10;
 
     private BlockingQueue<FortressWall> wallRequestBlockingQueue = new ArrayBlockingQueue<>(MAX_NUM_WALLS);
@@ -38,10 +39,8 @@ public class FortressWallSpawner implements Runnable
             while(true)
             {
                 FortressWall request = wallRequestBlockingQueue.take();
-                
-                gameEngine.putNewWall( request );
-
-                Thread.sleep(WALL_SPAWN_DELAY.toMillis());
+                gameEngine.putNewWall( request );               
+                cooldown();                
             }
         }
         catch(InterruptedException iE)
@@ -49,6 +48,24 @@ public class FortressWallSpawner implements Runnable
             // Nothing needed here.
         }
     }
+
+    private void cooldown() throws InterruptedException
+    {
+        long numUpdates = WALL_SPAWN_DELAY.toMillis() / WALL_COOLDOWN_UPDATE_INTERVAL.toMillis();
+        long remainingCooldownMillis = WALL_SPAWN_DELAY.toMillis();
+
+        for(long i = 0; i < numUpdates; i++)
+        {
+            gameEngine.updateWallCooldown( remainingCooldownMillis );
+            Thread.sleep( WALL_COOLDOWN_UPDATE_INTERVAL.toMillis() );
+            remainingCooldownMillis -= WALL_COOLDOWN_UPDATE_INTERVAL.toMillis();
+        }
+
+        gameEngine.updateWallCooldown(0);
+    }
+
+
+
 
     /**
      * Requests a wall be added at the coordinates (x, y)
