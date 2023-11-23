@@ -771,7 +771,7 @@ public class GameEngine implements ArenaListener
         
         Platform.runLater(()->
         {
-            app.setAvailableWalls(availableWalls);
+            app.setAvailableWallsText(availableWalls);
         });
     }
 
@@ -820,7 +820,7 @@ public class GameEngine implements ArenaListener
         }
 
         Platform.runLater(()-> {
-            app.setWallCooldown(remainingCooldownMillis);
+            app.setWallCooldownText(remainingCooldownMillis);
         });      
     }
 

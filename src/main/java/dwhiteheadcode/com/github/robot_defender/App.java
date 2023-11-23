@@ -76,11 +76,6 @@ public class App extends Application
         gameEngine.stop();
     }
 
-    public JFXArena getArena()
-    {
-        return this.arena;
-    }
-
     /*
      * Display a message in the on-screen log.
      * Must be called from UI thread.
@@ -122,8 +117,13 @@ public class App extends Application
      * Update the on-screen text displaying the cooldown before the next wall can/will be placed
      * Must be called from UI thread.
      */
-    public void setWallCooldown(long cooldownMillis)
+    public void setWallCooldownText(long cooldownMillis)
     {
+        if(cooldownMillis < 0)
+        {
+            throw new IllegalArgumentException("Can't set wall cooldown text for value " + cooldownMillis + " as it is less than 0");
+        }
+
         if(cooldownMillis == 0l)
         {
             this.wallCooldownLabel.setText("Wall Cooldown: READY");
@@ -140,7 +140,7 @@ public class App extends Application
      * Does not count queued walls.
      * Must be called from UI thread.
      */
-    public void setAvailableWalls(int availableWalls)
+    public void setAvailableWallsText(int availableWalls)
     {
         this.availableWallsLabel.setText("Available Walls: " + availableWalls);
     }
