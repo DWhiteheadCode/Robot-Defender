@@ -24,6 +24,9 @@ import dwhiteheadcode.com.github.robot_defender.misc.*;
 
 public class GameEngine implements ArenaListener
 {
+    // CONSTANTS
+    public static int MAX_WALLS = 10;
+
     // UI
     private App app;
     private JFXArena arena;
@@ -161,7 +164,7 @@ public class GameEngine implements ArenaListener
         robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
         
         // Create wall producer and consumer
-        this.wallSpawner = new FortressWallSpawner(this);
+        this.wallSpawner = new FortressWallSpawner(this, MAX_WALLS);
         wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
         wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
 
@@ -809,7 +812,7 @@ public class GameEngine implements ArenaListener
 
     public int getMaxWalls()
     {
-        return wallSpawner.maxWalls();
+        return MAX_WALLS;
     }
 
     public void updateWallCooldown(long remainingCooldownMillis)

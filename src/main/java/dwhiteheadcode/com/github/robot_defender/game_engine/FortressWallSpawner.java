@@ -14,15 +14,17 @@ public class FortressWallSpawner implements Runnable
 {
     private static final Duration WALL_SPAWN_DELAY = Duration.ofMillis(2000); // The delay after building 1 wall before the next can be built
     private static final Duration WALL_COOLDOWN_UPDATE_INTERVAL = Duration.ofMillis(100); // The amount of time to wait before updating UI about the cooldown
-    private static final int MAX_NUM_WALLS = 10;
-
-    private BlockingQueue<FortressWall> wallRequestBlockingQueue = new ArrayBlockingQueue<>(MAX_NUM_WALLS);
+    
+    private BlockingQueue<FortressWall> wallRequestBlockingQueue;
 
     private GameEngine gameEngine;
+    private int maxWalls;
 
-    public FortressWallSpawner(GameEngine gameEngine)
+    public FortressWallSpawner(GameEngine gameEngine, int maxWalls)
     {
+        this.maxWalls = maxWalls;
         this.gameEngine = gameEngine;
+        this.wallRequestBlockingQueue = new ArrayBlockingQueue<>(maxWalls);
     }
 
     /*
@@ -87,7 +89,7 @@ public class FortressWallSpawner implements Runnable
         int spawnedWalls = gameEngine.getNumSpawnedWalls();
         int totalWalls = spawnedWalls + wallRequestBlockingQueue.size();
 
-        if(totalWalls < MAX_NUM_WALLS)
+        if(totalWalls < this.maxWalls)
         {
             Vector2d coordinates = new Vector2d(x, y);
 
@@ -105,7 +107,7 @@ public class FortressWallSpawner implements Runnable
 
     public int maxWalls()
     {
-        return MAX_NUM_WALLS;
+        return maxWalls;
     }
     
 }

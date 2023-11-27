@@ -10,12 +10,25 @@ import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 
 public class App extends Application 
 {
+    // Constants
+    private static final int NUM_ROWS = 9;
+    private static final int NUM_COLS = 9;
+
+    // UI Elements
+    private ToolBar toolbar = new ToolBar();
+    private Label scoreLabel = new Label();
+    private Label queuedWallsLabel = new Label();
+    private Label wallCooldownLabel = new Label();
+    private Label availableWallsLabel = new Label();
+
+    private SplitPane splitPane = new SplitPane();
+    
+    private TextArea logger = new TextArea();
+
+    // Arena
     private JFXArena arena;
-    private TextArea logger;
-    private Label scoreLabel;
-    private Label queuedWallsLabel;
-    private Label wallCooldownLabel;
-    private Label availableWallsLabel;
+
+    // Game Engine   
     private GameEngine gameEngine;
 
     public static void main(String[] args) 
@@ -26,37 +39,19 @@ public class App extends Application
     @Override
     public void start(Stage stage) 
     {
-        stage.setTitle("Robot Defender");       
-        
-        int numRows = 9;
-        int numCols = 9;
+        stage.setTitle("Robot Defender");              
 
-        this.gameEngine = new GameEngine(this, numRows, numCols);
+        startNewGame();
 
-        this.arena = new JFXArena(gameEngine, numRows, numCols);
-        gameEngine.setArena(arena);
-        arena.addListener(gameEngine);
-
-        gameEngine.start();
-
+        // Useful for debugging
+        /*
         arena.addListener((x, y) ->
         {
             System.out.println("Arena click at (" + x + "," + y + ")");
         });
+        */
         
-        ToolBar toolbar = new ToolBar();
-        scoreLabel = new Label("Score: 0");
-        queuedWallsLabel = new Label("Queued Walls: 0");
-        availableWallsLabel = new Label("Available Walls: " + gameEngine.getMaxWalls());
-        wallCooldownLabel = new Label("Wall Placement Cooldown: READY");
-        toolbar.getItems().addAll(scoreLabel, queuedWallsLabel, availableWallsLabel, wallCooldownLabel);
-                    
-        this.logger = new TextArea();
-        
-        SplitPane splitPane = new SplitPane();
-        splitPane.getItems().addAll(arena, logger);
-        arena.setMinWidth(300.0);
-        
+        // UI Setup only needed when the first game is created
         BorderPane contentPane = new BorderPane();
         contentPane.setTop(toolbar);
         contentPane.setCenter(splitPane);
@@ -66,6 +61,41 @@ public class App extends Application
 
         stage.show();
     }
+
+
+    public void startNewGame()
+    {
+        // Create GameEngine
+        this.gameEngine = new GameEngine(this, NUM_ROWS, NUM_COLS);
+
+        // Create JFXArena
+        this.arena = new JFXArena(gameEngine, NUM_ROWS, NUM_COLS);
+        this.gameEngine.setArena(arena);
+        this.arena.addListener(gameEngine);
+        this.arena.setMinWidth(300.0);
+
+        // Set up/Reset UI
+        this.scoreLabel.setText("Score: 0");
+        this.queuedWallsLabel.setText("Queued Walls: 0");
+        this.availableWallsLabel.setText("Available Walls: " + GameEngine.MAX_WALLS);
+        this.wallCooldownLabel.setText("Wall Placement Cooldown: READY");
+        
+        if(this.toolbar.getItems().isEmpty()) // If this is the first game, add the elements to the toolbar
+        {
+            this.toolbar.getItems().addAll(scoreLabel, queuedWallsLabel, availableWallsLabel, wallCooldownLabel);
+        }        
+
+        this.logger.clear();
+
+        this.splitPane.getItems().clear();
+        this.splitPane.getItems().addAll(arena, logger); 
+
+        // Start Game 
+        gameEngine.start();
+    }
+
+
+
 
     /*
      * Stops the gameengine when the game window is closed.
@@ -100,8 +130,9 @@ public class App extends Application
      */
     public void gameOver(int finalScore)
     {
-        this.scoreLabel.setText("GAME OVER! Final Score: " + finalScore);
         gameEngine.stop();
+
+        new GameOverWindow().display(finalScore, this);
     }
 
     /*
