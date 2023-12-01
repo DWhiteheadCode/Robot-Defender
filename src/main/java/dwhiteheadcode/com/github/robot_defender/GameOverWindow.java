@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 public class GameOverWindow 
 {
-    public void display(int finalScore, App app)
+    public void display(int finalScore, GameWindow app)
     {
         Stage gameOverWindow = new Stage();
         gameOverWindow.initModality(Modality.WINDOW_MODAL);

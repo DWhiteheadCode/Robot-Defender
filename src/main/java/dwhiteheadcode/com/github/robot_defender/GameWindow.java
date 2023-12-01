@@ -1,6 +1,5 @@
 package dwhiteheadcode.com.github.robot_defender;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -8,12 +7,8 @@ import javafx.stage.Stage;
 
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 
-public class App extends Application 
+public class GameWindow
 {
-    // Constants
-    private static final int NUM_ROWS = 9;
-    private static final int NUM_COLS = 9;
-
     // UI Elements
     private ToolBar toolbar = new ToolBar();
     private Label scoreLabel = new Label();
@@ -21,7 +16,7 @@ public class App extends Application
     private Label wallCooldownLabel = new Label();
     private Label availableWallsLabel = new Label();
 
-    private SplitPane splitPane = new SplitPane();
+    private SplitPane splitPane = new SplitPane(); // Contains game window and game log
     
     private TextArea logger = new TextArea();
 
@@ -31,33 +26,21 @@ public class App extends Application
     // Game Engine   
     private GameEngine gameEngine;
 
-    public static void main(String[] args) 
-    {
-        launch();        
-    }
-    
-    @Override
+
     public void start(Stage stage) 
     {
-        stage.setTitle("Robot Defender");              
-
-        startNewGame();
-
-        // Useful for debugging
-        /*
-        arena.addListener((x, y) ->
-        {
-            System.out.println("Arena click at (" + x + "," + y + ")");
-        });
-        */
-        
         // UI Setup only needed when the first game is created
         BorderPane contentPane = new BorderPane();
         contentPane.setTop(toolbar);
         contentPane.setCenter(splitPane);
         
-        Scene scene = new Scene(contentPane, 800, 800);
-        stage.setScene(scene);
+        Scene gameScene = new Scene(contentPane, 800, 600);
+        stage.setScene(gameScene);
+
+        stage.setResizable(false);
+
+        // Start a new game
+        startNewGame();
 
         stage.show();
     }
@@ -66,10 +49,12 @@ public class App extends Application
     public void startNewGame()
     {
         // Create GameEngine
-        this.gameEngine = new GameEngine(this, NUM_ROWS, NUM_COLS);
+        this.gameEngine = GameEngine.instance(this);
+        int numRows = gameEngine.getNumRows();
+        int numCols = gameEngine.getNumCols();
 
         // Create JFXArena
-        this.arena = new JFXArena(gameEngine, NUM_ROWS, NUM_COLS);
+        this.arena = new JFXArena(gameEngine, numRows, numCols);
         this.gameEngine.setArena(arena);
         this.arena.addListener(gameEngine);
         this.arena.setMinWidth(300.0);
@@ -77,7 +62,7 @@ public class App extends Application
         // Set up/Reset UI
         this.scoreLabel.setText("Score: 0");
         this.queuedWallsLabel.setText("Queued Walls: 0");
-        this.availableWallsLabel.setText("Available Walls: " + GameEngine.MAX_WALLS);
+        this.availableWallsLabel.setText("Available Walls: " + gameEngine.getMaxWalls());
         this.wallCooldownLabel.setText("Wall Placement Cooldown: READY");
         
         if(this.toolbar.getItems().isEmpty()) // If this is the first game, add the elements to the toolbar
@@ -94,13 +79,9 @@ public class App extends Application
         gameEngine.start();
     }
 
-
-
-
     /*
-     * Stops the gameengine when the game window is closed.
+     * Stops the gameengine
      */
-    @Override
     public void stop() 
     {
         gameEngine.stop();

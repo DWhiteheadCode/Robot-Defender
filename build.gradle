@@ -23,7 +23,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'dwhiteheadcode.com.github.robot_defender.App'
+    mainClass = 'dwhiteheadcode.com.github.robot_defender.Main'
 }
 
 pmd {

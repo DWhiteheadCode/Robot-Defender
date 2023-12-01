@@ -25,10 +25,12 @@ import dwhiteheadcode.com.github.robot_defender.misc.*;
 public class GameEngine implements ArenaListener
 {
     // CONSTANTS
-    public static int MAX_WALLS = 10;
+    public static int MAX_WALLS_DEFAULT = 10;
+    public static int NUM_ROWS_DEFAULT = 9;
+    public static int NUM_COLS_DEFAULT = 9;
 
     // UI
-    private App app;
+    private GameWindow app;
     private JFXArena arena;
 
     // GAME ENGINE THREADS
@@ -66,8 +68,18 @@ public class GameEngine implements ArenaListener
     private Object robotFuturesMutex = new Object(); // Used to lock robotFutures
    
 
-    //CONSTRUCTOR
-    public GameEngine(App app, int numRows, int numCols)
+    //CONSTRUCTORS
+    public static GameEngine instance(GameWindow app)
+    {
+        return new GameEngine(app, NUM_ROWS_DEFAULT, NUM_COLS_DEFAULT);
+    }
+
+    public static GameEngine instance(GameWindow app, int numRows, int numCols)
+    {
+        return new GameEngine(app, numRows, numCols);
+    }
+
+    private GameEngine(GameWindow app, int numRows, int numCols)
     {
         if(numRows < 3)
         {
@@ -76,7 +88,7 @@ public class GameEngine implements ArenaListener
 
         if(numCols < 3)
         {
-            throw new IllegalArgumentException("GameEngine only supports grids with at least 3 cols.");
+            throw new IllegalArgumentException("GameEngine only supports grids with at least 3 columns.");
         }
 
         this.app = app;
@@ -103,6 +115,18 @@ public class GameEngine implements ArenaListener
         this.gridSquares[middleRow][middleCol].setCitadel(true);
         this.citadel = new Vector2d(middleCol, middleRow);
     }
+
+
+    public int getNumRows()
+    {
+        return this.numRows;
+    }
+
+    public int getNumCols()
+    {
+        return this.numCols;
+    }
+
 
     public void setArena(JFXArena arena)
     {
@@ -164,7 +188,7 @@ public class GameEngine implements ArenaListener
         robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
         
         // Create wall producer and consumer
-        this.wallSpawner = new FortressWallSpawner(this, MAX_WALLS);
+        this.wallSpawner = new FortressWallSpawner(this, MAX_WALLS_DEFAULT);
         wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
         wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
 
@@ -812,7 +836,7 @@ public class GameEngine implements ArenaListener
 
     public int getMaxWalls()
     {
-        return MAX_WALLS;
+        return MAX_WALLS_DEFAULT;
     }
 
     public void updateWallCooldown(long remainingCooldownMillis)
