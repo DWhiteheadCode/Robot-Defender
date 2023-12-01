@@ -14,8 +14,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javafx.application.Platform;
-
 import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
 import dwhiteheadcode.com.github.robot_defender.*;
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
@@ -30,7 +28,7 @@ public class GameEngine implements ArenaListener
     public static int NUM_COLS_DEFAULT = 9;
 
     // UI
-    private GameWindow app;
+    private GameWindow gameWindow;
     private JFXArena arena;
 
     // GAME ENGINE THREADS
@@ -91,7 +89,7 @@ public class GameEngine implements ArenaListener
             throw new IllegalArgumentException("GameEngine only supports grids with at least 3 columns.");
         }
 
-        this.app = app;
+        this.gameWindow = app;
 
         this.numRows = numRows;
         this.numCols = numCols;
@@ -322,7 +320,7 @@ public class GameEngine implements ArenaListener
                         Vector2d spawnCoords = nextRobot.getCoordinates();
 
                         // Log robot spawn on screen
-                        app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
+                        gameWindow.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
                                                   
                         // If there is a wall on the spawn point, damage it. 
                         FortressWall wallOnSpawnPoint = spawnLocation.getWall();
@@ -409,7 +407,7 @@ public class GameEngine implements ArenaListener
                             location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
                             placedWalls.add(newWall); 
 
-                            app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
+                            gameWindow.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
                         }                   
                     }
 
@@ -556,7 +554,7 @@ public class GameEngine implements ArenaListener
     private void gameOver()
     {
         int finalScore = score.getScore();
-        app.gameOver(finalScore);
+        gameWindow.gameOver(finalScore);
     }
 
 
@@ -629,7 +627,7 @@ public class GameEngine implements ArenaListener
 
             // Show log message on screen
             String msg = "Robot '" + id + "' hit a wall at (" + x + ", " + y + ")\n";
-            app.log(msg);
+            gameWindow.log(msg);
         }
 
         
@@ -740,7 +738,7 @@ public class GameEngine implements ArenaListener
     {
         int numWalls = wallSpawner.queueSize();
 
-        app.setQueuedWalls(numWalls);
+        gameWindow.setQueuedWalls(numWalls);
     }
 
     /*
@@ -782,7 +780,7 @@ public class GameEngine implements ArenaListener
     {
         int availableWalls = wallSpawner.maxWalls() - getAllWallsCount();
         
-        app.setAvailableWallsText(availableWalls);
+        gameWindow.setAvailableWallsText(availableWalls);
     }
 
     /*
@@ -802,9 +800,7 @@ public class GameEngine implements ArenaListener
      */
     public void updateArenaUi()
     {
-        Platform.runLater( () -> {
-            arena.requestLayout();
-        } );  
+        gameWindow.updateArenaUi();
     }
 
     /*
@@ -814,7 +810,7 @@ public class GameEngine implements ArenaListener
      */
     public void updateScore(int score)
     {
-        app.setScore(score);
+        gameWindow.setScore(score);
     }
 
     public int getMaxWalls()
@@ -829,7 +825,7 @@ public class GameEngine implements ArenaListener
             throw new IllegalArgumentException("Wall spawn cooldown can't be less than 0.");
         }
 
-        app.setWallCooldownText(remainingCooldownMillis);   
+        gameWindow.setWallCooldownText(remainingCooldownMillis);   
     }
 
 }

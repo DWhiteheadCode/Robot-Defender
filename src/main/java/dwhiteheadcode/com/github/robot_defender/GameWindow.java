@@ -170,4 +170,12 @@ public class GameWindow
         });        
     }
 
+    public void updateArenaUi()
+    {
+        Platform.runLater( () -> {
+            arena.requestLayout();
+        });
+    }
+
+
 }
