@@ -321,14 +321,9 @@ public class GameEngine implements ArenaListener
                         //Save the coordinates to print to the screen 
                         Vector2d spawnCoords = nextRobot.getCoordinates();
 
-                        // Redraw JFXArena UI element, and log robot spawn on screen
-                        Platform.runLater( () -> {
-                            app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
-                        } );      
-
-                        
-                                               
-                        
+                        // Log robot spawn on screen
+                        app.log("Spawned robot '" + nextRobot.getId() + "' at " + spawnCoords.toString() + "\n");
+                                                  
                         // If there is a wall on the spawn point, damage it. 
                         FortressWall wallOnSpawnPoint = spawnLocation.getWall();
                         if(wallOnSpawnPoint != null)
@@ -414,9 +409,7 @@ public class GameEngine implements ArenaListener
                             location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
                             placedWalls.add(newWall); 
 
-                            Platform.runLater(() -> {
-                                app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
-                            });
+                            app.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
                         }                   
                     }
 
@@ -563,10 +556,7 @@ public class GameEngine implements ArenaListener
     private void gameOver()
     {
         int finalScore = score.getScore();
-
-        Platform.runLater( () -> {
-            app.gameOver(finalScore);
-        });
+        app.gameOver(finalScore);
     }
 
 
@@ -639,9 +629,7 @@ public class GameEngine implements ArenaListener
 
             // Show log message on screen
             String msg = "Robot '" + id + "' hit a wall at (" + x + ", " + y + ")\n";
-            Platform.runLater(() -> {
-                app.log(msg);
-            });
+            app.log(msg);
         }
 
         
@@ -752,9 +740,7 @@ public class GameEngine implements ArenaListener
     {
         int numWalls = wallSpawner.queueSize();
 
-        Platform.runLater(() -> 
-            {app.setQueuedWalls(numWalls);}
-        );
+        app.setQueuedWalls(numWalls);
     }
 
     /*
@@ -796,10 +782,7 @@ public class GameEngine implements ArenaListener
     {
         int availableWalls = wallSpawner.maxWalls() - getAllWallsCount();
         
-        Platform.runLater(()->
-        {
-            app.setAvailableWallsText(availableWalls);
-        });
+        app.setAvailableWallsText(availableWalls);
     }
 
     /*
@@ -831,7 +814,7 @@ public class GameEngine implements ArenaListener
      */
     public void updateScore(int score)
     {
-        Platform.runLater( () -> {app.setScore(score);});
+        app.setScore(score);
     }
 
     public int getMaxWalls()
@@ -846,9 +829,7 @@ public class GameEngine implements ArenaListener
             throw new IllegalArgumentException("Wall spawn cooldown can't be less than 0.");
         }
 
-        Platform.runLater(()-> {
-            app.setWallCooldownText(remainingCooldownMillis);
-        });      
+        app.setWallCooldownText(remainingCooldownMillis);   
     }
 
 }

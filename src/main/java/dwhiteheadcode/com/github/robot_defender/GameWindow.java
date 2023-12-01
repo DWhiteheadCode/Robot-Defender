@@ -1,5 +1,6 @@
 package dwhiteheadcode.com.github.robot_defender;
 
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -89,45 +90,48 @@ public class GameWindow
 
     /*
      * Display a message in the on-screen log.
-     * Must be called from UI thread.
      */
     public void log(String message)
     {
-        logger.appendText(message);
+        Platform.runLater( ()-> {
+            logger.appendText(message);
+        });        
     }
 
     /*
      * Update the score on screen.
-     * Must be called from UI thread.
      */
     public void setScore(int score)
     {
-        this.scoreLabel.setText("Score: " + score);
+        Platform.runLater( ()-> {
+            this.scoreLabel.setText("Score: " + score);
+        });        
     }
 
     /*
      * Trigger end-of-game logic.
-     * Must be called from UI thread
      */
     public void gameOver(int finalScore)
     {
-        gameEngine.stop();
-
-        new GameOverWindow().display(finalScore, this);
+        Platform.runLater( ()-> {
+            gameEngine.stop();
+            new GameOverWindow().display(finalScore, this);
+        });        
     }
 
     /*
      * Update the on-screen text displaying the number of queue walls.
-     * Must be called from UI thread.
      */
     public void setQueuedWalls(int numWalls)
     {
-        this.queuedWallsLabel.setText("Queued Walls: " + numWalls);
+        Platform.runLater( ()-> {
+            this.queuedWallsLabel.setText("Queued Walls: " + numWalls);
+        });
     }
+        
 
     /*
      * Update the on-screen text displaying the cooldown before the next wall can/will be placed
-     * Must be called from UI thread.
      */
     public void setWallCooldownText(long cooldownMillis)
     {
@@ -136,25 +140,34 @@ public class GameWindow
             throw new IllegalArgumentException("Can't set wall cooldown text for value " + cooldownMillis + " as it is less than 0");
         }
 
+
         if(cooldownMillis == 0l)
         {
-            this.wallCooldownLabel.setText("Wall Cooldown: READY");
+            Platform.runLater( ()-> {
+                this.wallCooldownLabel.setText("Wall Cooldown: READY");
+            } );            
         }
         else
         {
             double cooldownSeconds = (double)cooldownMillis / 1000;
-            this.wallCooldownLabel.setText("Wall Cooldown: " + cooldownSeconds + "s");
+
+            Platform.runLater( ()-> {
+                this.wallCooldownLabel.setText("Wall Cooldown: " + cooldownSeconds + "s");
+            });            
         }
+        
+
     }
 
     /*
      * Update the on-screen text displaying the number of walls that can still be placed.
      * Does not count queued walls.
-     * Must be called from UI thread.
      */
     public void setAvailableWallsText(int availableWalls)
     {
-        this.availableWallsLabel.setText("Available Walls: " + availableWalls);
+        Platform.runLater( ()-> {
+            this.availableWallsLabel.setText("Available Walls: " + availableWalls);
+        });        
     }
 
 }
