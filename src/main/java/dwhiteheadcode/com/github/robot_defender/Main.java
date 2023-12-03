@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application
 {
-    public static String HIGHSCORE_FILE_NAME = "HighScore.txt";
+    public static final String HIGHSCORE_FILE_NAME = "HighScore.txt";
     private GameWindow game;
 
     public static void main(String[] args) 

@@ -23,9 +23,9 @@ import dwhiteheadcode.com.github.robot_defender.misc.*;
 public class GameEngine implements ArenaListener
 {
     // CONSTANTS
-    public static int MAX_WALLS_DEFAULT = 10;
-    public static int NUM_ROWS_DEFAULT = 9;
-    public static int NUM_COLS_DEFAULT = 9;
+    public static final int MAX_WALLS_DEFAULT = 10;
+    public static final int NUM_ROWS_DEFAULT = 9;
+    public static final int NUM_COLS_DEFAULT = 9;
 
     // UI
     private GameWindow gameWindow;
