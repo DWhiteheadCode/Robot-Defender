@@ -97,7 +97,7 @@ public class GameEngine implements ArenaListener
         int numSquares = numRows * numCols;
 
         // Create a thread pool for robot threads
-        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots). TODO Max number of threads may be sub-optimal
+        // Min 4 threads, max threads = numSquares - 1 (this is the maximum number of robots).
         // Destroy unused threads after 10 seconds
         this.robotExecutorService = new ThreadPoolExecutor(
             4, (numSquares - 1),

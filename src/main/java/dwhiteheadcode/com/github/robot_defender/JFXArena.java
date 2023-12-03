@@ -210,8 +210,8 @@ public class JFXArena extends Pane
         // We also need to know how "big" to make the image. The image file has a natural width 
         // and height, but that's not necessarily the size we want to draw it on the screen. We 
         // do, however, want to preserve its aspect ratio.
-        double fullSizePixelWidth = image.getWidth(); //TODO This was "robotImage", however I think it should be image. May need to fix later
-        double fullSizePixelHeight = image.getHeight(); //TODO same as above
+        double fullSizePixelWidth = image.getWidth(); 
+        double fullSizePixelHeight = image.getHeight(); 
         
         double displayedPixelWidth, displayedPixelHeight;
         if(fullSizePixelWidth > fullSizePixelHeight)
