@@ -58,7 +58,10 @@ public class Main extends Application
     @Override
     public void stop()
     {
-        this.game.stop();
+        if(this.game != null)
+        {
+            this.game.stop();
+        }        
     }
 
     private Optional<Integer> getHighscore()
