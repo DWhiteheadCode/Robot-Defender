@@ -66,6 +66,7 @@ public class GameEngine implements ArenaListener
     private Object robotFuturesMutex = new Object(); // Used to lock robotFutures
    
 
+
     //CONSTRUCTORS
     public static GameEngine instance(GameWindow app)
     {
@@ -114,6 +115,7 @@ public class GameEngine implements ArenaListener
         this.citadel = new Vector2d(middleCol, middleRow);
     }
 
+    
 
     public int getNumRows()
     {
@@ -394,7 +396,7 @@ public class GameEngine implements ArenaListener
                     {                        
                         Location location = gridSquares[wallX][wallY];
 
-                        // Ignore the build command if there is a robot at this location
+                        // Ignores the build command if there is a robot at this location
                         if(location.getRobot() == null)
                         {
                             // If this wall replaces an existing wall, remove the old wall
@@ -406,6 +408,7 @@ public class GameEngine implements ArenaListener
                             
                             location.setWall(newWall); // Note: If a wall already exists, this assumes a new wall can be placed to "refresh" it (e.g. if it was damamged)
                             placedWalls.add(newWall); 
+                            newWall.getPlacementSound().play();
 
                             gameWindow.log("Spawned wall at (" + wallX + ", " + wallY + ")\n");
                         }                   
@@ -827,5 +830,6 @@ public class GameEngine implements ArenaListener
 
         gameWindow.setWallCooldownText(remainingCooldownMillis);   
     }
+
 
 }

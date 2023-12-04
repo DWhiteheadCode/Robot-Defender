@@ -14,9 +14,11 @@ public class FortressWall
 
     public static final String COLLISION_SOUND_FILE = "sounds/wall_collision.wav";
     public static final String DESTRUCTION_SOUND_FILE = "sounds/wall_destruction.wav";
+    public static final String PLACEMENT_SOUND_FILE = "sounds/wall_placement.wav";
     
     private MediaPlayer collisionSoundPlayer;
     private MediaPlayer destructionSoundPlayer;
+    private MediaPlayer placementSoundPlayer;
 
     private final Vector2d coordinates;
     private boolean isDamaged; // Not locked because GameEngine prevents multiple robots from colliding with the wall at the same time.               
@@ -34,6 +36,12 @@ public class FortressWall
 
     private void loadSounds()
     {
+        // Load Placement Sound
+        URL placementSoundUri = getClass().getClassLoader().getResource(PLACEMENT_SOUND_FILE);
+        Media placementSound = new Media(placementSoundUri.toString());
+        this.placementSoundPlayer = new MediaPlayer(placementSound);
+        this.placementSoundPlayer.setVolume(0.3);
+
         // Load Collision Sound
         URL collisionSoundUri = getClass().getClassLoader().getResource(COLLISION_SOUND_FILE);
         Media collisionSound = new Media(collisionSoundUri.toString());
@@ -68,6 +76,11 @@ public class FortressWall
     public boolean isDamaged()
     {
         return isDamaged;
+    }
+
+    public MediaPlayer getPlacementSound()
+    {
+        return this.placementSoundPlayer;
     }
 
     /*
