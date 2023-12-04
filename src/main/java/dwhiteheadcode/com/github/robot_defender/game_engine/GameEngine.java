@@ -1,5 +1,6 @@
 package dwhiteheadcode.com.github.robot_defender.game_engine;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,8 @@ import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
 import dwhiteheadcode.com.github.robot_defender.*;
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 import dwhiteheadcode.com.github.robot_defender.misc.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 
 public class GameEngine implements ArenaListener
@@ -26,10 +29,14 @@ public class GameEngine implements ArenaListener
     public static final int MAX_WALLS_DEFAULT = 10;
     public static final int NUM_ROWS_DEFAULT = 9;
     public static final int NUM_COLS_DEFAULT = 9;
+    public static final String GAME_OVER_SOUND_FILE = "sounds/game_over.wav";
 
     // UI
     private GameWindow gameWindow;
     private JFXArena arena;
+
+    // SOUNDS
+    private MediaPlayer gameOverMediaPlayer;
 
     // GAME ENGINE THREADS
     private volatile Thread robotSpawnProducerThread;
@@ -113,9 +120,17 @@ public class GameEngine implements ArenaListener
         int middleCol = (numCols / 2);
         this.gridSquares[middleRow][middleCol].setCitadel(true);
         this.citadel = new Vector2d(middleCol, middleRow);
+
+        loadGameOverSound();
     }
 
-    
+    private void loadGameOverSound()
+    {
+        URL gameOverSoundUri = getClass().getClassLoader().getResource(GAME_OVER_SOUND_FILE);
+        Media gameOverSound = new Media(gameOverSoundUri.toString());
+        this.gameOverMediaPlayer = new MediaPlayer(gameOverSound);
+        this.gameOverMediaPlayer.setVolume(0.1);
+    }
 
     public int getNumRows()
     {
@@ -557,6 +572,7 @@ public class GameEngine implements ArenaListener
     private void gameOver()
     {
         int finalScore = score.getScore();
+        gameOverMediaPlayer.play();
         gameWindow.gameOver(finalScore);
     }
 
