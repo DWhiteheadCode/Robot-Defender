@@ -1,6 +1,8 @@
-package dwhiteheadcode.com.github.robot_defender.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine.components;
 
 import java.time.Duration;
+
+import dwhiteheadcode.com.github.robot_defender.GameWindow;
 
 /*
  * Class used to keep track of the player's score.
@@ -15,11 +17,11 @@ public class ScoreCalculator implements Runnable
 
     private Object mutex = new Object(); // Used to lock score, as it is accessed by multiple threads
 
-    private GameEngine gameEngine;
+    private GameWindow gameWindow;
 
-    public ScoreCalculator(GameEngine gameEngine)
+    public ScoreCalculator(GameWindow gameWindow)
     {
-        this.gameEngine = gameEngine;
+        this.gameWindow = gameWindow;
     }
 
     /*
@@ -37,7 +39,7 @@ public class ScoreCalculator implements Runnable
                 synchronized(mutex)
                 {
                     score += PASSIVE_SCORE_INCREMENT;
-                    gameEngine.updateScore(score);
+                    this.gameWindow.setScore(score);
                 }
 
                 Thread.sleep(PASSIVE_SCORE_DELAY.toMillis());
@@ -60,7 +62,7 @@ public class ScoreCalculator implements Runnable
         synchronized(mutex)
         {
             score += ROBOT_DESTROYED_SCORE;
-            gameEngine.updateScore(score);
+            this.gameWindow.setScore(score);
         }
     }
 

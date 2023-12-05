@@ -16,6 +16,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import dwhiteheadcode.com.github.robot_defender.entities.robot.*;
+import dwhiteheadcode.com.github.robot_defender.game_engine.components.FortressWallSpawner;
+import dwhiteheadcode.com.github.robot_defender.game_engine.components.RobotSpawner;
+import dwhiteheadcode.com.github.robot_defender.game_engine.components.ScoreCalculator;
 import dwhiteheadcode.com.github.robot_defender.*;
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 import dwhiteheadcode.com.github.robot_defender.misc.*;
@@ -26,9 +29,6 @@ import javafx.scene.media.MediaPlayer;
 public class GameEngine implements ArenaListener
 {
     // CONSTANTS
-    public static final int MAX_WALLS_DEFAULT = 10;
-    public static final int NUM_ROWS_DEFAULT = 9;
-    public static final int NUM_COLS_DEFAULT = 9;
     public static final String GAME_OVER_SOUND_FILE = "sounds/game_over.wav";
 
     // UI
@@ -45,7 +45,8 @@ public class GameEngine implements ArenaListener
     private volatile Thread wallSpawnProducerThread;
     private volatile Thread scoreThread;
 
-    // WALL SPAWNER
+    // SPAWNERS
+    private RobotSpawner robotSpawner;
     private FortressWallSpawner wallSpawner;
 
     // ROBOT THREAD POOL
@@ -63,29 +64,20 @@ public class GameEngine implements ArenaListener
 
     private ScoreCalculator score; // Handles its own locking
 
-    private final Vector2d citadel; // Can't be modified, so doesn't need to be locked
-
-    private final int numRows; // Can't be modified, so doesn't need to be locked
-    private final int numCols; // Can't be modified, so doesn't need to be locked
+    // Can't be modified, so doesn't need to be locked
+    private final Vector2d citadel; 
+    private final int numRows; 
+    private final int numCols; 
+    private final int maxWalls;
 
     // MUTEXES
     private Object gameStateMutex = new Object(); // Used to lock GAME STATE INFO variables, unless otherwise specified
     private Object robotFuturesMutex = new Object(); // Used to lock robotFutures
    
 
-
-    //CONSTRUCTORS
-    public static GameEngine instance(GameWindow app)
-    {
-        return new GameEngine(app, NUM_ROWS_DEFAULT, NUM_COLS_DEFAULT);
-    }
-
-    public static GameEngine instance(GameWindow app, int numRows, int numCols)
-    {
-        return new GameEngine(app, numRows, numCols);
-    }
-
-    private GameEngine(GameWindow app, int numRows, int numCols)
+    //CONSTRUCTOR
+    public GameEngine(GameWindow gameWindow, int numRows, int numCols, int maxWalls, RobotSpawner robotSpawner, 
+        FortressWallSpawner wallSpawner, ScoreCalculator score)
     {
         if(numRows < 3)
         {
@@ -97,10 +89,13 @@ public class GameEngine implements ArenaListener
             throw new IllegalArgumentException("GameEngine only supports grids with at least 3 columns.");
         }
 
-        this.gameWindow = app;
-
+        this.gameWindow = gameWindow;
         this.numRows = numRows;
         this.numCols = numCols;
+        this.maxWalls = maxWalls;
+        this.robotSpawner = robotSpawner;
+        this.wallSpawner = wallSpawner;
+        this.score = score;
 
         int numSquares = numRows * numCols;
 
@@ -124,25 +119,7 @@ public class GameEngine implements ArenaListener
         loadGameOverSound();
     }
 
-    private void loadGameOverSound()
-    {
-        URL gameOverSoundUri = getClass().getClassLoader().getResource(GAME_OVER_SOUND_FILE);
-        Media gameOverSound = new Media(gameOverSoundUri.toString());
-        this.gameOverMediaPlayer = new MediaPlayer(gameOverSound);
-        this.gameOverMediaPlayer.setVolume(0.1);
-    }
-
-    public int getNumRows()
-    {
-        return this.numRows;
-    }
-
-    public int getNumCols()
-    {
-        return this.numCols;
-    }
-
-
+    
     public void setArena(JFXArena arena)
     {
         if(this.arena != null)
@@ -193,23 +170,22 @@ public class GameEngine implements ArenaListener
      */
     public void start()
     {
-        if(robotSpawnProducerThread != null || robotSpawnConsumerThread != null || wallSpawnConsumerThread != null || wallSpawnProducerThread != null || scoreThread != null)
+        if(robotSpawnProducerThread != null || robotSpawnConsumerThread != null || wallSpawnConsumerThread != null 
+            || wallSpawnProducerThread != null || scoreThread != null)
         {
             throw new IllegalStateException("Can't start a GameEngine that is already running.");
         }
 
         // Create robot producer and consumer
-        robotSpawnConsumerThread = new Thread(robotSpawnConsumerRunnable(), "robot-spawn-consumer");
-        robotSpawnProducerThread = new Thread( new RobotSpawner(this), "robot-spawn-producer" );
+        robotSpawnConsumerThread = new Thread( robotSpawnConsumerRunnable(), "robot-spawn-consumer" );
+        robotSpawnProducerThread = new Thread( this.robotSpawner, "robot-spawn-producer" );
         
-        // Create wall producer and consumer
-        this.wallSpawner = new FortressWallSpawner(this, MAX_WALLS_DEFAULT);
-        wallSpawnProducerThread = new Thread(wallSpawner, "wall-spawn-producer");
-        wallSpawnConsumerThread = new Thread(wallSpawnConsumerRunnable(), "wall-spawn-consumer");
+        // Create wall producer and consumer threads
+        wallSpawnProducerThread = new Thread( this.wallSpawner, "wall-spawn-producer" );
+        wallSpawnConsumerThread = new Thread( wallSpawnConsumerRunnable(), "wall-spawn-consumer" );
 
         // Create score thread
-        this.score = new ScoreCalculator(this);
-        scoreThread = new Thread(this.score, "score-thread");
+        scoreThread = new Thread( this.score, "score-thread" );
 
         // Start all threads
         robotSpawnConsumerThread.start();
@@ -360,7 +336,7 @@ public class GameEngine implements ArenaListener
                         }                   
                     }
 
-                    updateArenaUi(); 
+                    this.gameWindow.updateArenaUi(); 
                 }  
             }
             catch(InterruptedException iE)
@@ -431,7 +407,7 @@ public class GameEngine implements ArenaListener
 
                     updateQueuedWallsText();
                     updateAvailableWallsText();
-                    updateArenaUi();
+                    this.gameWindow.updateArenaUi();
                 }
             }
             catch(InterruptedException iE)
@@ -525,7 +501,7 @@ public class GameEngine implements ArenaListener
             robot.setCoordinates(newPos);
         }
 
-        updateArenaUi();    
+        this.gameWindow.updateArenaUi();    
     }
 
     /*
@@ -617,7 +593,7 @@ public class GameEngine implements ArenaListener
             robots.remove(id);
         }
 
-        updateArenaUi();
+        this.gameWindow.updateArenaUi();
     }
 
     /*
@@ -677,7 +653,7 @@ public class GameEngine implements ArenaListener
             placedWalls.remove(wall);
         }
 
-        updateArenaUi();
+        this.gameWindow.updateArenaUi();
         updateAvailableWallsText();
     }
 
@@ -749,8 +725,13 @@ public class GameEngine implements ArenaListener
     }
 
     /*
-     * Updates the on-screen text displaying the number of "queued" walls
+     * Updates the on-screen text displaying the number of walls that have been "queued".
      * 
+     * Note: This specifically refers to the walls that the user has tried to place that are 
+     * waiting for the wallSpawner's cooldown to allow them to be placed. This does NOT count 
+     * walls that are waiting to be placed by the WallSpawnConsumerThread (which is typically 
+     * trivial).
+     *  
      * Thread: Wall-spawn-consumer, UI
      */
     private void updateQueuedWallsText()
@@ -793,12 +774,11 @@ public class GameEngine implements ArenaListener
      * 
      * NOTE: If wall A is queued such that it will replace a damaged wall (wall B), both A and B will be
      *       counted as walls (thus 2 will be subtracted from the number of available walls) until wall A 
-     *       is placed, which actually destroys wall B.
+     *       is placed, which destroys wall B.
      */
     public void updateAvailableWallsText()
     {
-        int availableWalls = wallSpawner.maxWalls() - getAllWallsCount();
-        
+        int availableWalls = this.maxWalls - getAllWallsCount();
         gameWindow.setAvailableWallsText(availableWalls);
     }
 
@@ -812,39 +792,28 @@ public class GameEngine implements ArenaListener
         wallSpawnBlockingQueue.put(wall);
     }
 
-    /*
-     * Called to update the UI of the grid portion of the game (i.e.: the arena)
-     * 
-     * Thread: Wall-spawn-consumer, robot-spawn-consumer, Robots
-     */
-    public void updateArenaUi()
-    {
-        gameWindow.updateArenaUi();
-    }
-
-    /*
-     * Updates the score on-screen
-     * 
-     * Threads: score
-     */
-    public void updateScore(int score)
-    {
-        gameWindow.setScore(score);
-    }
 
     public int getMaxWalls()
     {
-        return MAX_WALLS_DEFAULT;
+        return this.maxWalls;
     }
 
-    public void updateWallCooldown(long remainingCooldownMillis)
+    public int getNumRows()
     {
-        if(remainingCooldownMillis < 0)
-        {
-            throw new IllegalArgumentException("Wall spawn cooldown can't be less than 0.");
-        }
+        return this.numRows;
+    }
 
-        gameWindow.setWallCooldownText(remainingCooldownMillis);   
+    public int getNumCols()
+    {
+        return this.numCols;
+    }
+
+    private void loadGameOverSound()
+    {
+        URL gameOverSoundUri = getClass().getClassLoader().getResource(GAME_OVER_SOUND_FILE);
+        Media gameOverSound = new Media(gameOverSoundUri.toString());
+        this.gameOverMediaPlayer = new MediaPlayer(gameOverSound);
+        this.gameOverMediaPlayer.setVolume(0.1);
     }
 
 

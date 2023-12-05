@@ -7,6 +7,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
+import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngineFactory;
 
 public class GameWindow
 {
@@ -50,7 +51,7 @@ public class GameWindow
     public void startNewGame()
     {
         // Create GameEngine
-        this.gameEngine = GameEngine.instance(this);
+        this.gameEngine = GameEngineFactory.instance(this);
         int numRows = gameEngine.getNumRows();
         int numCols = gameEngine.getNumCols();
 

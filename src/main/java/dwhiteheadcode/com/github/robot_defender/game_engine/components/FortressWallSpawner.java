@@ -1,10 +1,12 @@
-package dwhiteheadcode.com.github.robot_defender.game_engine;
+package dwhiteheadcode.com.github.robot_defender.game_engine.components;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.time.Duration;
 
+import dwhiteheadcode.com.github.robot_defender.GameWindow;
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.FortressWall;
+import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
 /*
@@ -18,13 +20,19 @@ public class FortressWallSpawner implements Runnable
     private BlockingQueue<FortressWall> wallRequestBlockingQueue;
 
     private GameEngine gameEngine;
+    private GameWindow gameWindow;
     private int maxWalls;
 
-    public FortressWallSpawner(GameEngine gameEngine, int maxWalls)
+    public FortressWallSpawner(GameWindow gameWindow, int maxWalls)
     {
         this.maxWalls = maxWalls;
-        this.gameEngine = gameEngine;
+        this.gameWindow = gameWindow;
         this.wallRequestBlockingQueue = new ArrayBlockingQueue<>(maxWalls);
+    }
+
+    public void setGameEngine(GameEngine gameEngine)
+    {
+        this.gameEngine = gameEngine;
     }
 
     /*
@@ -36,6 +44,11 @@ public class FortressWallSpawner implements Runnable
     @Override
     public void run() 
     {
+        if(this.gameEngine == null)
+        {
+            throw new IllegalStateException("FortressWallSpawner's GameEngine must be set before it can be started.");
+        }
+
         try
         {
             while(true)
@@ -51,6 +64,11 @@ public class FortressWallSpawner implements Runnable
         }
     }
 
+    /*
+     * Sleeps the calling thread for a total duration of WALL_SPAWN_DELAY. Periodically (specifically, 
+     * every WALL_COOLDOWN_UPDATE_INTERVAL), gameWindow's "cooldown" text is updated to reflect the
+     * remaining cooldown duration.
+     */
     private void cooldown() throws InterruptedException
     {
         long numUpdates = WALL_SPAWN_DELAY.toMillis() / WALL_COOLDOWN_UPDATE_INTERVAL.toMillis();
@@ -58,15 +76,13 @@ public class FortressWallSpawner implements Runnable
 
         for(long i = 0; i < numUpdates; i++)
         {
-            gameEngine.updateWallCooldown( remainingCooldownMillis );
+            gameWindow.setWallCooldownText( remainingCooldownMillis );
             Thread.sleep( WALL_COOLDOWN_UPDATE_INTERVAL.toMillis() );
             remainingCooldownMillis -= WALL_COOLDOWN_UPDATE_INTERVAL.toMillis();
         }
 
-        gameEngine.updateWallCooldown(0);
+        gameWindow.setWallCooldownText(0);
     }
-
-
 
 
     /**
@@ -93,21 +109,14 @@ public class FortressWallSpawner implements Runnable
         {
             Vector2d coordinates = new Vector2d(x, y);
 
-            wallRequestBlockingQueue.offer(new FortressWall(gameEngine, coordinates));
+            wallRequestBlockingQueue.offer(new FortressWall(gameEngine, gameWindow, coordinates));
             gameEngine.updateAvailableWallsText();
         }        
     }
 
-    
-
     public int queueSize()
     {
         return wallRequestBlockingQueue.size();
-    }
-
-    public int maxWalls()
-    {
-        return maxWalls;
     }
     
 }

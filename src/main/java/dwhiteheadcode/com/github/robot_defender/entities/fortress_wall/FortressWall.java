@@ -4,6 +4,7 @@ import javafx.scene.media.*;
 
 import java.net.URL;
 
+import dwhiteheadcode.com.github.robot_defender.GameWindow;
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 import dwhiteheadcode.com.github.robot_defender.misc.Vector2d;
 
@@ -24,11 +25,13 @@ public class FortressWall
     private boolean isDamaged; // Not locked because GameEngine prevents multiple robots from colliding with the wall at the same time.               
 
     private GameEngine gameEngine;
+    private GameWindow gameWindow;
 
-    public FortressWall(GameEngine gameEngine, Vector2d coordinates)
+    public FortressWall(GameEngine gameEngine, GameWindow gameWindow, Vector2d coordinates)
     {
         this.gameEngine = gameEngine;
         this.isDamaged = false;
+        this.gameWindow = gameWindow;
         this.coordinates = coordinates;
 
         loadSounds();
@@ -104,7 +107,7 @@ public class FortressWall
             this.collisionSoundPlayer.play();
            
             this.isDamaged = true;
-            gameEngine.updateArenaUi();
+            gameWindow.updateArenaUi();
         }      
     }
 }
