@@ -53,6 +53,8 @@ Provided with the assignment specification was a template for the gameplay UI, b
 
 # Planned Future Work
 
+- Write unit tests
+
 - Add a difficulty setting which impacts the following:
 
     - Grid size
