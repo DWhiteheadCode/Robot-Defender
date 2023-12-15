@@ -199,8 +199,7 @@ public class GameEngine implements ArenaListener
     /*
      * Interrupts all actively running Threads. Shuts down the ExecutorService used for Robots.
      * 
-     * Note: 
-     * This does not impact the game state in any way (such as removing robots from the grid, or removing robot tasks from the robotFutures Map), 
+     * Note: This does not impact the game state in any way (such as removing robots from the grid, or removing robot tasks from the robotFutures Map), 
      * as it is assumed that this GameEngine won't be used again. This has the added benefit of not removing robots from the screen after a gameover(),
      * allowing the player to see where robots were at the time of the gameover. 
      */
@@ -228,7 +227,7 @@ public class GameEngine implements ArenaListener
      * 
      * This Runnable represents an "infinite" (interruptible) loop that takes a new robot from 
      * robotSpawnBlockingQueue whenever it is available, then places it in a random, available
-     * corner in the map.
+     * corner in the grid.
      * If no corner is available (not occupied by another robot), it will wait() on the lock,
      * expecting a notification from any other thread that has updated 'gridSquares'.
      * 
@@ -426,7 +425,7 @@ public class GameEngine implements ArenaListener
      * Adds a new robot to the blocking queue, for consumption by the robot-spawn-consumer 
      * thread.
      * 
-     * Thread: Runs in the calling thread (usually the Robot-Spawn-Producer) 
+     * Thread: Robot-Spawn-Producer
      */
     public void putNewRobot(Robot robot) throws InterruptedException
     {
@@ -445,7 +444,7 @@ public class GameEngine implements ArenaListener
      * a method to call when it finishes its move (so the GameEngine can perform additional
      * processing, such as collision detection).
      * 
-     * Thread: Runs in the calling thread (typically the Robot's thread)
+     * Thread: Robot thread(s)
      */
     public boolean requestMove(Robot robot, Vector2d move) throws InterruptedException
     {
@@ -493,7 +492,7 @@ public class GameEngine implements ArenaListener
      * 
      * Updates the position of the robot, and updates the UI
      * 
-     * Thread: Runs in the calling thread (Robot)
+     * Thread: Robot thread(s)
      */
     public void updateRobotPos(Robot robot, Vector2d newPos)
     {
@@ -512,7 +511,7 @@ public class GameEngine implements ArenaListener
      * - Checks for Wall collisions at (endX, endY)
      * - Checks for Citadel collision at (endX, endY)
      * 
-     * Thread: Runs in Robot's thread
+     * Thread: Robot thread(s)
      */
     public void moveCompleted(Robot robot, int startX, int startY, int endX, int endY)
     {
@@ -544,7 +543,7 @@ public class GameEngine implements ArenaListener
     /*
      * Tells 'app' to trigger the gameOver sequence.
      * 
-     * Thread: "Runs" in the calling thread (typically a Robot's thread)
+     * Thread: Robot thread(s)
      */
     private void gameOver()
     {
@@ -564,7 +563,6 @@ public class GameEngine implements ArenaListener
      * Thread: Called from either:
      *             - The Robot's thread (from GameEngine.moveComplete(), if it moved into a wall)
      *             - Robot-spawn-consumer (if the robot spawned on a wall)
-     *             - Whichever thread called GameEnigine.stop() (typically UI)
      */
     private void destroyRobot(Robot robot)
     {
@@ -602,8 +600,9 @@ public class GameEngine implements ArenaListener
      * 
      * Increases the score, displays an on-screen log message; then destroys the robot.
      * 
-     * Thread: Called by the robot's thread from GameEngine.moveComplete(), or by the robot-spawn-consumer thread
-     * if the robot spawned on a wall
+     * Thread: Called from either:
+     *              - Robot's thread from GameEngine.moveComplete()
+     *              - Robot-spawn-consumer (if the robot spawned on a wall)
      */
     private void robotHitWall(Robot robot, FortressWall wall)
     {
@@ -636,8 +635,9 @@ public class GameEngine implements ArenaListener
      * - Removes the wall from the List of placed walls
      * - Updates the UI
      * 
-     * Thread: Called by either the wall-spawn-consumer thread (if a wall is being placed on
-     * an existing wall); or by a Robot thread (if a robot has moved onto a pre-damaged wall)
+     * Thread: Called by either:
+     *              - Wall-spawn-consumer thread (if a wall is being placed on an existing wall)
+     *              - Robot thread (if a robot has moved onto a pre-damaged wall)
      */
     public void destroyWall(FortressWall wall)
     {
@@ -662,7 +662,7 @@ public class GameEngine implements ArenaListener
     /*
      * Returns a List of all robots in the game (as ReadOnlyRobots)
      * 
-     * Thread: Runs in the calling thread (typically UI)
+     * Thread: UI
      */
     public List<ReadOnlyRobot> getRobots()
     {
@@ -682,7 +682,7 @@ public class GameEngine implements ArenaListener
     /*
      * Returns a List of all FortressWalls in the game (as ReadOnlyFortressWalls)
      * 
-     * Thread: Runs in the calling thread (typically UI)
+     * Thread: UI
      */
     public List<ReadOnlyFortressWall> getPlacedWalls()
     {
@@ -716,7 +716,7 @@ public class GameEngine implements ArenaListener
     /*
      * Called when the user wants to place a wall
      * 
-     * Thread: Runs in the UI thread
+     * Thread: UI
      */
     @Override
     public void squareClicked(int x, int y)
