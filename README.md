@@ -85,6 +85,7 @@ All sounds were sourced from https://freesound.org/ under the "Creative Commons 
 
 - Wall destruction: https://freesound.org/people/iwanPlays/sounds/567249/
 
+- Game Over: https://freesound.org/people/Breviceps/sounds/493163/
 
 ## Template
 
