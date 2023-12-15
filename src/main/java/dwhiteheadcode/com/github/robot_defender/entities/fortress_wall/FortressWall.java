@@ -30,9 +30,9 @@ public class FortressWall
     public FortressWall(GameEngine gameEngine, GameWindow gameWindow, Vector2d coordinates)
     {
         this.gameEngine = gameEngine;
-        this.isDamaged = false;
         this.gameWindow = gameWindow;
         this.coordinates = coordinates;
+        this.isDamaged = false;
 
         loadSounds();
     }
@@ -72,7 +72,7 @@ public class FortressWall
     }
 
     /*
-     * Returns false if the wall is not damaged, and true if it is.
+     * Returns true if this wall is damaged, and false if it is not.
      * 
      * Thread: Called by UI thread. GameEngine is responsible for locking this.
      */
@@ -106,7 +106,8 @@ public class FortressWall
         {
             this.collisionSoundPlayer.play();
            
-            this.isDamaged = true;
+            // Doesn't need to be synchonrised as GameEngine ensures only 1 robot can hit the wall at once
+            this.isDamaged = true; 
             gameWindow.updateArenaUi();
         }      
     }

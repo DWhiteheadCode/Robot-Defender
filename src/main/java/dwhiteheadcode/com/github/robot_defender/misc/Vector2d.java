@@ -55,6 +55,7 @@ public class Vector2d
         return new Vector2d( xDelta, yDelta );
     }
 
+    // Returns the vector resulting from (this + vec)
     public Vector2d plus(Vector2d vec)
     {
         double newX = this.x + vec.x();
@@ -63,7 +64,7 @@ public class Vector2d
         return new Vector2d( newX, newY );
     }
 
-    // Returns the vector resulting from (this / vec)
+    // Returns the vector resulting from dividing both this.x and this.y by denominator.
     public Vector2d divide(double denominator)
     {
         double newX = this.x / denominator;

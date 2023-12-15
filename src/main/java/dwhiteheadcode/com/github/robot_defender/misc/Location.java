@@ -11,9 +11,9 @@ import dwhiteheadcode.com.github.robot_defender.entities.robot.Robot;
 public class Location 
 {
     private final Vector2d coordinates; // Coordinates of the Location
-    private Robot robot; // The robot that occupies the location (could be null)
-    private FortressWall wall; // The wall that occupies the location (could be null)
-    private boolean citadel; // Whether or not this Location has the citadel
+    private Robot robot; // The robot that occupies the location (could be null if no robot is here)
+    private FortressWall wall; // The wall that occupies the location (could be null if no wall is here)
+    private boolean citadel; // True if this Location has the citadel, otherwise false.
 
     public Location(Vector2d coordinates)
     {
@@ -42,7 +42,9 @@ public class Location
     // MUTATORS ----------------------------------
     public void setRobot(Robot newRobot)
     {
-        if(this.robot != null && newRobot != null) // Allows newRobot = null to clear this robot
+        // If a robot occupies this location, a new robot can't be placed here.
+        // setRobot(null) can be used to clear the robot from this Location.
+        if(this.robot != null && newRobot != null) 
         {
             throw new IllegalStateException("Can't set robot on an already occupied Location");
         }
@@ -52,7 +54,11 @@ public class Location
 
     public void setWall(FortressWall newWall)
     {
-        if(this.wall != null && newWall != null) // Allows newWall = nul to clear this wall
+        // If a wall occupies this location, a new wall can't be placed here.
+        //      NOTE: GameEngine manages requests for new walls at Locations with existing walls.
+        //            See GameEngine for details on how these are handled.
+        // setWall(null) can be used to clear the wall from this Location.
+        if(this.wall != null && newWall != null) 
         {
             throw new IllegalStateException("Can't set wall on an already occupied Location"); 
         }   

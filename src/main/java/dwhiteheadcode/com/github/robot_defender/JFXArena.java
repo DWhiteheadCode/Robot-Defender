@@ -17,24 +17,23 @@ import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 
 
 /**
- * A JavaFX GUI element that displays a grid on which you can draw images, text and lines.
+ * A JavaFX GUI element that displays a grid on which images, text and lines can be drawn.
  */
 public class JFXArena extends Pane
 {
+    private static final String CITADEL_IMAGE_FILE = "images/citadel.png";
+
     private GameEngine gameEngine;
 
-    // Represents an image to draw
+    // Game entity images/sprites that can be drawn to the Pane.
     private Image robotImage;
     private Image undamagedFortressWallImage;
     private Image damagedFortressWallImage;
     private Image citadelImage;
     
-    private static final String CITADEL_IMAGE_FILE = "images/citadel.png";
-
-    // The following values are arbitrary, and you may need to modify them according to the 
-    // requirements of your application.
-    private int gridCols;
-    private int gridRows;
+    // The size of the grid that will be drawn.
+    private final int gridCols;
+    private final int gridRows;
 
     private double gridSquareSize; // Auto-calculated
     private Canvas canvas; // Used to provide a 'drawing surface'.
@@ -42,7 +41,7 @@ public class JFXArena extends Pane
     private List<ArenaListener> listeners = null;
     
     /**
-     * Creates a new arena object, loading the robot image and initialising a drawing surface.
+     * Creates a new arena object, loading the entity images and initialising a drawing surface.
      */
     public JFXArena(GameEngine gameEngine, int numRows, int numCols)
     {
@@ -66,7 +65,6 @@ public class JFXArena extends Pane
     }
    
 
-
     // Return an Image from a resource filename
     private Image loadImage(String path)
     {
@@ -84,7 +82,6 @@ public class JFXArena extends Pane
         }
     }
 
-    
     
     /**
      * Adds a callback for when the user clicks on a grid square within the arena. The callback 
@@ -117,9 +114,6 @@ public class JFXArena extends Pane
     /**
      * This method is called in order to redraw the screen, either because the user is manipulating 
      * the window, OR because you've called 'requestLayout()'.
-     *
-     * You will need to modify the last part of this method; specifically the sequence of calls to
-     * the other 'draw...()' methods. You shouldn't need to modify anything else about it.
      */
     @Override
     public void layoutChildren()
@@ -156,7 +150,6 @@ public class JFXArena extends Pane
         }
 
         // Invoke helper methods to draw things at the current location.
-        // ** You will need to adapt this to the requirements of your application. **
         List<ReadOnlyRobot> robots = gameEngine.getRobots();
         List<ReadOnlyFortressWall> walls = gameEngine.getPlacedWalls();
         Vector2d citadelPos = gameEngine.getCitadel();
@@ -188,8 +181,6 @@ public class JFXArena extends Pane
             drawLabel( gfx, label, r.getCoordinates().x(), r.getCoordinates().y() );
         }
 
-        
-
     }
     
     
@@ -198,8 +189,6 @@ public class JFXArena extends Pane
      *
      * Note that the grid location can be fractional, so that (for instance), you can draw an image 
      * at location (3.5,4), and it will appear on the boundary between grid cells (3,4) and (4,4).
-     *     
-     * You shouldn't need to modify this method.
      */
     private void drawImage(GraphicsContext gfx, Image image, double gridX, double gridY)
     {
@@ -242,8 +231,6 @@ public class JFXArena extends Pane
     /**
      * Displays a string of text underneath a specific grid location. *Only* call this from within 
      * layoutChildren(). 
-     *     
-     * You shouldn't need to modify this method.
      */
     private void drawLabel(GraphicsContext gfx, String label, double gridX, double gridY)
     {
@@ -255,8 +242,6 @@ public class JFXArena extends Pane
     
     /** 
      * Draws a (slightly clipped) line between two grid coordinates.
-     *     
-     * You shouldn't need to modify this method.
      */
     /*
     private void drawLine(GraphicsContext gfx, double gridX1, double gridY1, 

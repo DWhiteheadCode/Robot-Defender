@@ -13,12 +13,15 @@ public class Robot implements Runnable
 {
     public static final String IMAGE_FILE = "images/robot.png";
 
-    // Each robot's move delay (delay between moves) is chosen at random between these min/max values (inclusive)
+    // Each robot's move delay (delay between moves) is chosen at random between these min/max values (inclusive). 
+    // Note that move delay is chosen *per robot*, and not *per move*. I.e. The delay between every move made by robot 1
+    // will be the same. The delay between every move made by robot 2 will also be the same, but robot 1's move delay will 
+    // likely be different to robot 2's move delay. 
     private static final Duration MIN_MOVE_DELAY = Duration.ofMillis(500);
     private static final Duration MAX_MOVE_DELAY = Duration.ofMillis(2000);
     
     private static final Duration MOVE_DURATION = Duration.ofMillis(400);
-    private static final Duration MOVE_ANIMATION_INTERVAL = Duration.ofMillis(40); // Amount of time between each frame
+    private static final Duration MOVE_ANIMATION_INTERVAL = Duration.ofMillis(40); // Amount of time between each "frame"
 
     private final int id;
     private final Duration moveDelay; // The actual move delay of this robot
@@ -46,12 +49,11 @@ public class Robot implements Runnable
 
 
     /*
-     * Defines the Robot's logic, as follows:
-     *     - Sleeps for moveDelayMilliseconds
-     *     - Determines its movePreferenceOrder based on citadel distance
-     *     - Attempts to make moves until all moves have been tried, or GameEngine approves one
+     * Defines the Robot's movement logic:
+     *     - Sleeps for moveDelay 
+     *     - Sorts possible moves based on distance from citadel after making each move.
+     *     - Attempts to make moves (in order of preference) until all moves have been tried, or GameEngine approves one
      *         - If a move was accepted, that move is made
-     * 
      */
     @Override
     public void run() 
@@ -231,7 +233,8 @@ public class Robot implements Runnable
      *          RIGHT:   7 / (5 + 10 + 3 + 7)
      * 
      *      After this iteration, the chosen move is added to the front of "orderedMoves", and is removed from "unorderedMoves"
-     *          Assuming the most likely move is chosen:
+     *          Assuming the most likely move is chosen (this is the move that would put the robot the *furthest away* from the 
+     *          citadel out of all possible moves):
      *              unorderedMoves = {UP, LEFT, RIGHT}  
      *              orderedMoves = {DOWN}
      * 
@@ -245,7 +248,7 @@ public class Robot implements Runnable
      *              orderedMoves = {RIGHT, DOWN}
      *              
      *              Notice how "RIGHT", was placed in front of "DOWN" in the list.
-     *                  This ensures the moves with the smallest distance from the citadel are more likely to end up at the start of the list    * 
+     *                  This ensures the moves with the smallest distance from the citadel are more likely to end up at the start of the list     
      */
     private List<Move> generateMoveOrder(List<Move> unorderedMoves)
     {
@@ -286,22 +289,5 @@ public class Robot implements Runnable
 
         return orderedMoves;
     }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
 
 }

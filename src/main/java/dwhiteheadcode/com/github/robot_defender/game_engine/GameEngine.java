@@ -60,11 +60,11 @@ public class GameEngine implements ArenaListener
     private Location[][] gridSquares;
     private Map<Integer, Future<?>> robotFutures = new HashMap<>(); // A map of all robot TASKS (futures). Robot ID is used as key. Locked with robotFuturesMutex (and not gameStateMutex).
     private Map<Integer, Robot> robots = new HashMap<>(); // A map of all active robots. Robot ID is used as key
-    private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); // A list of all active walls
+    private List<FortressWall> placedWalls = Collections.synchronizedList(new ArrayList<>()); // A list of all walls that have been placed in the grid by the WallSpawnConsumer
 
     private ScoreCalculator score; // Handles its own locking
 
-    // Can't be modified, so doesn't need to be locked
+    // Can't be modified, so don't need to be locked
     private final Vector2d citadel; 
     private final int numRows; 
     private final int numCols; 

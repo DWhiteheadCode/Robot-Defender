@@ -16,10 +16,19 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/*
+ * The window that is shown when a GameOver occurs (a robot reaches the citadel).
+ */
 public class GameOverWindow 
 {
     private Label errorText;
 
+    /*
+     * Displays a window showing the score at the time of the game over, the highscore,
+     * and a button to restart the game. 
+     * 
+     * The GameWindow can't be interacted with until this window is closed. 
+     */
     public void display(int finalScore, GameWindow app)
     {
         Optional<Integer> previousHighScore = getPreviousHighScore();
@@ -77,7 +86,10 @@ public class GameOverWindow
         gameOverWindow.showAndWait();
     }
 
-
+    /*
+     * Returns false if previousHighScore contains a value that is greater than newScore.
+     * Returns true otherwise.
+     */
     private boolean isNewHighScore(Optional<Integer> previousHighScore, int newScore)
     {
         if(previousHighScore.isEmpty() || newScore > previousHighScore.get())
@@ -88,6 +100,16 @@ public class GameOverWindow
         return false;
     }
 
+    /*
+     * Gets the previously saved highscore.
+     * 
+     * Returns either:
+     *      An empty Optional if no highscore could be loaded.
+     * 
+     *      OR
+     * 
+     *      An Optional containing the previously saved highscore.
+     */
     private Optional<Integer> getPreviousHighScore()
     {
         File highScoreFile = new File(Main.HIGHSCORE_FILE_NAME);
@@ -112,6 +134,9 @@ public class GameOverWindow
         }
     }
 
+    /*
+     * Attempts to save the given score to the HighScore file, deleting the previously saved highscore (if there was one).
+     */
     private void saveHighScore(int score) throws IOException
     {
         File highScoreFile = new File(Main.HIGHSCORE_FILE_NAME);

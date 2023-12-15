@@ -13,6 +13,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+/*
+ * The entrypoint for the program. 
+ */
 public class Main extends Application
 {
     public static final String HIGHSCORE_FILE_NAME = "HighScore.txt";
@@ -55,6 +58,7 @@ public class Main extends Application
         stage.show();
     }
     
+    // Stops the GameWindow when the application is closed.
     @Override
     public void stop()
     {
@@ -64,6 +68,16 @@ public class Main extends Application
         }        
     }
 
+    /*
+     * Loads the saved highscore. 
+     * 
+     * Returns either:
+     *      An empty Optional if no highscore could be loaded. 
+     * 
+     *      OR
+     * 
+     *      An Optional containing the loaded highscore.
+     */
     private Optional<Integer> getHighscore()
     {
         File highScoreFile = new File(Main.HIGHSCORE_FILE_NAME);
@@ -87,7 +101,5 @@ public class Main extends Application
             return Optional.empty();
         }
     }
-
-
 
 }
