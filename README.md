@@ -61,6 +61,8 @@ Provided with the assignment specification was a template for the gameplay UI, b
 
     - Robot move timings
 
+    - Robot move sets (such as moving 2 squares at a time, or like a horse in chess, etc)
+
     - Wall cooldown
 
     - Max number of walls
