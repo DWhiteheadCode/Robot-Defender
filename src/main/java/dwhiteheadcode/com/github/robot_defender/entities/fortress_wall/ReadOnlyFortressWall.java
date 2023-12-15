@@ -19,7 +19,7 @@ public class ReadOnlyFortressWall
 
     public Vector2d getCoordinates()
     {
-        return new Vector2d(this.coordinates);
+        return this.coordinates;
     }
 
     public boolean isDamaged()

@@ -708,7 +708,7 @@ public class GameEngine implements ArenaListener
      */
     public Vector2d getCitadel()
     {
-        return new Vector2d(citadel);
+        return citadel;
     }
 
 

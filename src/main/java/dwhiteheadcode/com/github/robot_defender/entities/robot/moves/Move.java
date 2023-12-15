@@ -22,7 +22,7 @@ public class Move
 
     public Vector2d getMoveVec()
     {
-        return new Vector2d(moveVec);
+        return moveVec;
     }
 
     public double getDistanceToCitadel()

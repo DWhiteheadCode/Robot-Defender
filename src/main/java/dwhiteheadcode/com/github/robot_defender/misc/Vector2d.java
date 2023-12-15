@@ -5,28 +5,12 @@ package dwhiteheadcode.com.github.robot_defender.misc;
  */
 public class Vector2d 
 {
-    private double x;
-    private double y;
+    private final double x;
+    private final double y;
 
     public Vector2d(double x, double y)
     {
         this.x = x;
-        this.y = y;
-    }
-
-    public Vector2d(Vector2d copy)
-    {
-        this.x = copy.x();
-        this.y = copy.y();
-    }
-
-    public void setX(int x)
-    {
-        this.x = x;
-    }
-
-    public void setY(int y)
-    {
         this.y = y;
     }
     

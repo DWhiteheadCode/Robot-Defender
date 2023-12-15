@@ -60,7 +60,7 @@ public class FortressWall
 
 
     /*
-     * Returns a copy of this Wall's coordinates
+     * Returns this Wall's coordinates
      * 
      * These are never modified, and so don't need to be synchronized
      * 
@@ -68,7 +68,7 @@ public class FortressWall
      */
     public Vector2d getCoordinates()
     {
-        return new Vector2d(this.coordinates);
+        return this.coordinates;
     }
 
     /*

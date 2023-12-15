@@ -74,7 +74,7 @@ public class Location
     //Return a copy of this location's coordinates
     public Vector2d getCoordinates()
     {
-        return new Vector2d(this.coordinates);
+        return this.coordinates;
     }
     
 

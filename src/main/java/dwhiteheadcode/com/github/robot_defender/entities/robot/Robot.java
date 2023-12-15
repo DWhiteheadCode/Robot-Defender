@@ -184,7 +184,7 @@ public class Robot implements Runnable
 
     public Vector2d getCoordinates()
     {
-        return new Vector2d(this.coordinates);
+        return this.coordinates;
     }
 
     
