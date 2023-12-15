@@ -1,12 +1,6 @@
 package dwhiteheadcode.com.github.robot_defender;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Optional;
 
 import javafx.geometry.Pos;
@@ -31,7 +25,7 @@ public class GameOverWindow
      */
     public void display(int finalScore, GameWindow app)
     {
-        Optional<Integer> previousHighScore = getPreviousHighScore();
+        Optional<Integer> previousHighScore = new HighScoreAccessor().getHighScore();
         
         String highScoreText;
 
@@ -42,7 +36,7 @@ public class GameOverWindow
 
             try
             {
-                saveHighScore(highScore);
+                new HighScoreAccessor().saveHighScore(highScore);
             }
             catch(IOException ioE)
             {
@@ -100,60 +94,8 @@ public class GameOverWindow
         return false;
     }
 
-    /*
-     * Gets the previously saved highscore.
-     * 
-     * Returns either:
-     *      An empty Optional if no highscore could be loaded.
-     * 
-     *      OR
-     * 
-     *      An Optional containing the previously saved highscore.
-     */
-    private Optional<Integer> getPreviousHighScore()
-    {
-        File highScoreFile = new File(Main.HIGHSCORE_FILE_NAME);
+    
 
-        if( ! highScoreFile.exists() )
-        {
-            return Optional.empty();
-        }
-
-        try(
-            FileReader scoreReader = new FileReader(highScoreFile);
-            BufferedReader buffer = new BufferedReader(scoreReader);)
-        {
-            String line = buffer.readLine();
-            int highScore = Integer.valueOf(line);
-            
-            return Optional.of(highScore);
-        }
-        catch(IOException | NumberFormatException e )
-        {
-            return Optional.empty();
-        }
-    }
-
-    /*
-     * Attempts to save the given score to the HighScore file, deleting the previously saved highscore (if there was one).
-     */
-    private void saveHighScore(int score) throws IOException
-    {
-        File highScoreFile = new File(Main.HIGHSCORE_FILE_NAME);
-
-        if(highScoreFile.exists())
-        {
-            highScoreFile.delete();
-        }
-
-        OutputStreamWriter osw = new OutputStreamWriter( new FileOutputStream(highScoreFile));
-        
-        try(BufferedWriter bw = new BufferedWriter(osw))
-        {
-            String scoreString = String.valueOf(score);
-
-            bw.write(scoreString);
-        }        
-    }
+    
     
 }
