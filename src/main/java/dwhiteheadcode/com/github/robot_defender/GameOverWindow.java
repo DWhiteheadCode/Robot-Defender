@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import dwhiteheadcode.com.github.robot_defender.misc.HighScoreAccessor;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -55,6 +56,11 @@ public class GameOverWindow
         gameOverWindow.setTitle("Robot Defender - GAME OVER");
         gameOverWindow.setMinWidth(400);
         gameOverWindow.setMinHeight(150);
+
+        // Close the whole App if the GameOverWindow is dismissed
+        gameOverWindow.setOnCloseRequest( (e)-> {
+            Platform.exit();
+        });
 
         Label finalScoreLabel = new Label("Final Score: " + finalScore);
         Label highScoreLabel = new Label(highScoreText);
