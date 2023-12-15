@@ -2,6 +2,7 @@ package dwhiteheadcode.com.github.robot_defender;
 
 import java.util.Optional;
 
+import dwhiteheadcode.com.github.robot_defender.misc.HighScoreAccessor;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;

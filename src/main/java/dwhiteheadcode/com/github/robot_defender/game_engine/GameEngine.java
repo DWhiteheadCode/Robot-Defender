@@ -19,6 +19,8 @@ import dwhiteheadcode.com.github.robot_defender.game_engine.components.FortressW
 import dwhiteheadcode.com.github.robot_defender.game_engine.components.RobotSpawner;
 import dwhiteheadcode.com.github.robot_defender.game_engine.components.ScoreCalculator;
 import dwhiteheadcode.com.github.robot_defender.*;
+import dwhiteheadcode.com.github.robot_defender.arena.ArenaListener;
+import dwhiteheadcode.com.github.robot_defender.arena.GameArena;
 import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 import dwhiteheadcode.com.github.robot_defender.misc.*;
 import javafx.scene.media.Media;

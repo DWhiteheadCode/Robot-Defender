@@ -1,4 +1,4 @@
-package dwhiteheadcode.com.github.robot_defender;
+package dwhiteheadcode.com.github.robot_defender.arena;
 
 import javafx.scene.canvas.*;
 import javafx.geometry.VPos;

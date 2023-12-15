@@ -1,4 +1,4 @@
-package dwhiteheadcode.com.github.robot_defender;
+package dwhiteheadcode.com.github.robot_defender.arena;
 
 /**
  * Represents an event handler for when the arena is clicked.

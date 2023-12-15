@@ -5,7 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
+import dwhiteheadcode.com.github.robot_defender.arena.GameArena;
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngine;
 import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngineFactory;
 

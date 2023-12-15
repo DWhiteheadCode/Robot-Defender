@@ -3,6 +3,7 @@ package dwhiteheadcode.com.github.robot_defender;
 import java.io.IOException;
 import java.util.Optional;
 
+import dwhiteheadcode.com.github.robot_defender.misc.HighScoreAccessor;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
