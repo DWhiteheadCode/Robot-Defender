@@ -23,7 +23,7 @@ public class GameWindow
     private TextArea logger = new TextArea();
 
     // Arena
-    private JFXArena arena;
+    private GameArena arena;
 
     // Game Engine   
     private GameEngine gameEngine;
@@ -56,7 +56,7 @@ public class GameWindow
         int numCols = gameEngine.getNumCols();
 
         // Create JFXArena
-        this.arena = new JFXArena(gameEngine, numRows, numCols);
+        this.arena = new GameArena(gameEngine, numRows, numCols);
         this.gameEngine.setArena(arena);
         this.arena.addListener(gameEngine);
         this.arena.setMinWidth(300.0);

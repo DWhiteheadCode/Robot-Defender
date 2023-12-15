@@ -33,7 +33,7 @@ public class GameEngine implements ArenaListener
 
     // UI
     private GameWindow gameWindow;
-    private JFXArena arena;
+    private GameArena arena;
 
     // SOUNDS
     private MediaPlayer gameOverMediaPlayer;
@@ -120,7 +120,7 @@ public class GameEngine implements ArenaListener
     }
 
     
-    public void setArena(JFXArena arena)
+    public void setArena(GameArena arena)
     {
         if(this.arena != null)
         {

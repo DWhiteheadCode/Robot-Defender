@@ -19,7 +19,7 @@ import dwhiteheadcode.com.github.robot_defender.entities.fortress_wall.*;
 /**
  * A JavaFX GUI element that displays a grid on which images, text and lines can be drawn.
  */
-public class JFXArena extends Pane
+public class GameArena extends Pane
 {
     private static final String CITADEL_IMAGE_FILE = "images/citadel.png";
 
@@ -43,7 +43,7 @@ public class JFXArena extends Pane
     /**
      * Creates a new arena object, loading the entity images and initialising a drawing surface.
      */
-    public JFXArena(GameEngine gameEngine, int numRows, int numCols)
+    public GameArena(GameEngine gameEngine, int numRows, int numCols)
     {
         this.gridRows = numRows;
         this.gridCols = numCols;
