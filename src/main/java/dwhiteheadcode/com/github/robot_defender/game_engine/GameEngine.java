@@ -31,6 +31,9 @@ public class GameEngine implements ArenaListener
 {
     // CONSTANTS
     public static final String GAME_OVER_SOUND_FILE = "sounds/game_over.wav";
+    private static final int MIN_NUM_ROWS = 3;
+    private static final int MIN_NUM_COLS = 3;
+
 
     // UI
     private GameWindow gameWindow;
@@ -80,12 +83,12 @@ public class GameEngine implements ArenaListener
     public GameEngine(GameWindow gameWindow, int numRows, int numCols, int maxWalls, RobotSpawner robotSpawner, 
         FortressWallSpawner wallSpawner, ScoreCalculator score)
     {
-        if(numRows < 3)
+        if(numRows < MIN_NUM_ROWS)
         {
             throw new IllegalArgumentException("GameEngine only supports grids with at least 3 rows.");
         }
 
-        if(numCols < 3)
+        if(numCols < MIN_NUM_COLS)
         {
             throw new IllegalArgumentException("GameEngine only supports grids with at least 3 columns.");
         }

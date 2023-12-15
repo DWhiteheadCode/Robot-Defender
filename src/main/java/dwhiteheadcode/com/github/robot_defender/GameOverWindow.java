@@ -17,6 +17,9 @@ import javafx.stage.Stage;
  */
 public class GameOverWindow 
 {
+    private static final int MIN_WIDTH = 400;
+    private static final int MIN_HEIGHT = 150;
+
     private Label errorText;
 
     /*
@@ -54,8 +57,8 @@ public class GameOverWindow
         Stage gameOverWindow = new Stage();
         gameOverWindow.initModality(Modality.WINDOW_MODAL);
         gameOverWindow.setTitle("Robot Defender - GAME OVER");
-        gameOverWindow.setMinWidth(400);
-        gameOverWindow.setMinHeight(150);
+        gameOverWindow.setMinWidth(MIN_WIDTH);
+        gameOverWindow.setMinHeight(MIN_HEIGHT);
 
         // Close the whole App if the GameOverWindow is dismissed
         gameOverWindow.setOnCloseRequest( (e)-> {

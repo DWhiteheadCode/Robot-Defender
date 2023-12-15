@@ -11,6 +11,10 @@ import dwhiteheadcode.com.github.robot_defender.game_engine.GameEngineFactory;
 
 public class GameWindow
 {
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+    private static final double ARENA_MIN_WIDTH = 300.0d;
+
     // UI Elements
     private ToolBar toolbar = new ToolBar();
     private Label scoreLabel = new Label();
@@ -36,7 +40,7 @@ public class GameWindow
         contentPane.setTop(toolbar);
         contentPane.setCenter(splitPane);
         
-        Scene gameScene = new Scene(contentPane, 800, 600);
+        Scene gameScene = new Scene(contentPane, WIDTH, HEIGHT);
         stage.setScene(gameScene);
 
         stage.setResizable(false);
@@ -59,7 +63,7 @@ public class GameWindow
         this.arena = new GameArena(gameEngine, numRows, numCols);
         this.gameEngine.setArena(arena);
         this.arena.addListener(gameEngine);
-        this.arena.setMinWidth(300.0);
+        this.arena.setMinWidth(ARENA_MIN_WIDTH);
 
         // Set up/Reset UI
         this.scoreLabel.setText("Score: 0");
