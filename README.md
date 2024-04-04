@@ -1,3 +1,7 @@
+# Demo
+
+A brief demo video can be found here: https://youtu.be/tQQZjatBySo
+
 # Build + Run
 
 This project can be built and run using Gradle. Navigate to the project directory (`Robot-Defender`), then enter the following command based on your OS.
@@ -51,9 +55,9 @@ The assessment specification detailed the gameplay requirements, including the g
 
 Provided with the assignment specification was a template for the gameplay UI, basic build files, entity images, and a PMD ruleset; all of which can be seen in the initial commit. 
 
-# Planned Future Work
+# Potential Future Work
 
-- Write unit tests
+- Add visual feedback for mouse clicks (when queuing a wall, or to indicate that there are no available walls).
 
 - Add a difficulty setting which impacts the following:
 
@@ -72,6 +76,8 @@ Provided with the assignment specification was a template for the gameplay UI, b
         - Rewrite movement algorithm to choose the "optimal" move more or less often
 
 - Investigate the benefits/ practicality of converting some threads from Runnables with "Thread.sleep()" to TimerTasks executed by Timers with scheduleAtFixedRate(). 
+
+- Write unit tests
 
 # References
 
